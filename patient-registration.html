@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Registration | Roktojoba Foundation</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/patient-registration.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Poppins:wght@300;400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* Custom styles for this page */
+        body {
+            font-family: 'Noto Sans Bengali', 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+        }
+
+        .bengali-text {
+            font-family: 'Noto Sans Bengali', sans-serif;
+        }
+
+        .main-content {
+            padding: 40px 0;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .form-title {
+            color: #e63946;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .section-subtitle {
+            color: #e63946;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e63946;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-subtitle i {
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            font-family: 'Noto Sans Bengali', 'Poppins', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #e63946;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(230, 57, 70, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .form-text {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-container {
+                padding: 25px;
+            }
+
+            .form-title {
+                font-size: 2rem;
+            }
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-block {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .status-check-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 50px;
+            border: 1px solid #dee2e6;
+        }
+
+        .status-check-section h3 {
+            color: #e63946;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .status-check-section p {
+            color: #666;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .status-check-form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+            padding-right: 40px;
+        }
+
+        /* Required field indicator */
+        .required::after {
+            content: ' *';
+            color: #e63946;
+        }
+
+        /* Loading animation */
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Alert container */
+        #alertContainer {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        @media (max-width: 768px) {
+            #alertContainer {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+        }
+
+        .logo-item:hover {
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+        }
+
+        /* ============================================
+           BP INPUT GROUP
+           ============================================ */
+        .bp-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 8px 12px;
+            transition: all 0.3s ease;
+        }
+
+        .bp-input-group:focus-within {
+            border-color: #e63946;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(230, 57, 70, 0.1);
+        }
+
+        .bp-input-group input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: 500;
+            outline: none;
+            padding: 6px;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .bp-input-group input::placeholder {
+            color: #999;
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        .bp-separator {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #e63946;
+            padding: 0 2px;
+        }
+
+        .bp-unit {
+            color: #666;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding-left: 5px;
+            border-left: 1px solid #ddd;
+            margin-left: 5px;
+        }
+
+        /* ============================================
+   AGE INPUT GROUP (Years + Months)
+   ============================================ */
+        .age-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 480px) {
+            .age-input-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ============================================
+   TOGGLE REQUIRED STATE
+   ============================================ */
+        .yes-no-toggle {
+            box-shadow: 0 0 0 0 rgba(230, 57, 70, 0);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .form-group.toggle-error .yes-no-toggle {
+            box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.25);
+            border-color: #e63946;
+        }
+
+        .form-group.toggle-error .form-label {
+            color: #e63946;
+        }
+
+        /* ============================================
+           WEIGHT INPUT WITH UNIT
+           ============================================ */
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit .form-control {
+            flex: 1;
+            padding-right: 65px;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 15px;
+            color: #e63946;
+            font-weight: 700;
+            font-size: 0.9rem;
+            pointer-events: none;
+            background: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        /* ============================================
+           YES / NO TOGGLE
+           ============================================ */
+        .yes-no-toggle {
+            display: inline-flex;
+            border-radius: 50px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+            background: #f8f9fa;
+            margin-bottom: 5px;
+            padding: 3px;
+            gap: 3px;
+        }
+
+        .toggle-option {
+            cursor: pointer;
+            margin: 0;
+            position: relative;
+        }
+
+        .toggle-option input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 28px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            color: #666;
+            font-family: 'Noto Sans Bengali', sans-serif;
+            min-width: 90px;
+            border-radius: 50px;
+            font-size: 1rem;
+        }
+
+        .toggle-label:hover {
+            background: #e9ecef;
+        }
+
+        .toggle-option input:checked+.toggle-yes {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(40, 167, 69, 0.35);
+        }
+
+        .toggle-option input:checked+.toggle-no {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            box-shadow: 0 3px 10px rgba(108, 117, 125, 0.35);
+        }
+
+        .toggle-label i {
+            font-size: 0.85rem;
+        }
+
+        .conditional-field {
+            animation: slideDown 0.35s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+                max-height: 0;
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                max-height: 200px;
+            }
+        }
+
+        /* Info note about phone limit */
+        .phone-limit-note {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #e7f3ff;
+            color: #0056b3;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-top: 8px;
+            border-left: 3px solid #0056b3;
+            font-family: 'Noto Sans Bengali', sans-serif;
+        }
+
+        .phone-limit-note i {
+            color: #0056b3;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" style="background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <div class="container">
+            <div class="nav-container"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0;">
+                <a href="index.html" class="logo"
+                    style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: #e63946;">
+                    <div
+                        style="width: 40px; height: 40px; background: #e63946; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-heartbeat" style="color: white; font-size: 20px;"></i>
+                    </div>
+                    <span class="bengali-text" style="font-size: 1.2rem; font-weight: 700;">রক্তজবা ফাউন্ডেশন</span>
+                </a>
+
+                <button class="menu-toggle" id="menuToggle"
+                    style="background: none; border: none; font-size: 1.5rem; color: #333; cursor: pointer; display: none;">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <ul class="nav-menu" style="display: flex; list-style: none; margin: 0; padding: 0; gap: 25px;">
+                    <li><a href="index.html"
+                            style="text-decoration: none; color: #333; font-weight: 500; display: flex; align-items: center; gap: 8px;"><i
+                                class="fas fa-home"></i> হোম</a></li>
+                    <li><a href="patient-registration.html"
+                            style="text-decoration: none; color: #e63946; font-weight: 600; display: flex; align-items: center; gap: 8px;"><i
+                                class="fas fa-user-plus"></i> রোগী নিবন্ধন</a></li>
+                    <li><a href="volunteer-registration.html"
+                            style="text-decoration: none; color: #333; font-weight: 500; display: flex; align-items: center; gap: 8px;"><i
+                                class="fas fa-hands-helping"></i> স্বেচ্ছাসেবক নিবন্ধন</a></li>
+                    <li><a href="admin-login.html"
+                            style="text-decoration: none; color: #333; font-weight: 500; display: flex; align-items: center; gap: 8px;"><i
+                                class="fas fa-user-shield"></i> অ্যাডমিন পোর্টাল</a></li>
+                    <li><a href="doctor-portal.html"
+                            style="text-decoration: none; color: #333; font-weight: 500; display: flex; align-items: center; gap: 8px;"><i
+                                class="fas fa-user-md"></i> ডাক্তার পোর্টাল</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+            <!-- Alert Container -->
+            <div id="alertContainer"></div>
+
+            <div class="form-container animate-fade-in">
+                <h1 class="form-title bengali-text">রোগী নিবন্ধন</h1>
+                <p class="form-subtitle bengali-text">বিনামূল্যে মেডিকেল ক্যাম্পে অংশগ্রহণের
+                    জন্য নিবন্ধন করুন</p>
+
+                <form id="patientRegistrationForm" novalidate>
+                    <!-- Personal Information Section -->
+                    <h3 class="section-subtitle bengali-text">
+                        <i class="fas fa-user-circle"></i> ব্যক্তিগত তথ্য
+                    </h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fullName" class="form-label bengali-text required">পূর্ণ নাম</label>
+                            <input type="text" id="fullName" class="form-control"
+                                placeholder="Enter your full name in English" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label bengali-text required">বয়স</label>
+                            <div class="age-input-group">
+                                <div class="input-with-unit">
+                                    <input type="number" id="ageYears" class="form-control" min="0" max="120"
+                                        placeholder="0">
+                                    <span class="input-unit bengali-text">বছর</span>
+                                </div>
+                                <div class="input-with-unit">
+                                    <input type="number" id="ageMonths" class="form-control" min="0" max="11"
+                                        placeholder="0">
+                                    <span class="input-unit bengali-text">মাস</span>
+                                </div>
+                            </div>
+                            <small class="form-text bengali-text">শিশুদের ক্ষেত্রে শুধু মাস লিখুন (যেমন: ৬ মাস)</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="gender" class="form-label bengali-text required">লিঙ্গ</label>
+                            <select id="gender" class="form-control" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">পুরুষ (Male)</option>
+                                <option value="Female">মহিলা (Female)</option>
+                                <option value="Other">অন্যান্য (Other)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bloodGroup" class="form-label bengali-text">রক্তের গ্রুপ</label>
+                            <select id="bloodGroup" class="form-control">
+                                <option value="">Select Blood Group</option>
+                                <option value="A+">A+ (এ+)</option>
+                                <option value="A-">A- (এ-)</option>
+                                <option value="B+">B+ (বি+)</option>
+                                <option value="B-">B- (বি-)</option>
+                                <option value="O+">O+ (ও+)</option>
+                                <option value="O-">O- (ও-)</option>
+                                <option value="AB+">AB+ (এবি+)</option>
+                                <option value="AB-">AB- (এবি-)</option>
+                                <option value="Unknown">Unknown (অজানা)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Phone - full width -->
+                    <div class="form-group">
+                        <label for="phone" class="form-label bengali-text required">মোবাইল নম্বর</label>
+                        <input type="tel" id="phone" class="form-control" placeholder="01XXXXXXXXX or +8801XXXXXXXXX"
+                            required>
+                        <div class="phone-limit-note">
+                            <i class="fas fa-info-circle"></i>
+                            <span>একই মোবাইল নম্বর দিয়ে সর্বোচ্চ ১০ জন রোগী নিবন্ধন করা যাবে</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address" class="form-label bengali-text required">সম্পূর্ণ ঠিকানা</label>
+                        <textarea id="address" class="form-control" rows="3"
+                            placeholder="House No, Road, Area, City, District (in English)" required></textarea>
+                    </div>
+
+                    <!-- Medical Information Section -->
+                    <h3 class="section-subtitle bengali-text">
+                        <i class="fas fa-file-medical"></i> চিকিৎসা তথ্য
+                    </h3>
+
+                    <!-- BP & Weight -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label bengali-text required">রক্তচাপ (BP)</label>
+                            <div class="bp-input-group">
+                                <input type="number" id="bpSystolic" min="00" max="300" placeholder="Systolic" required>
+                                <span class="bp-separator">/</span>
+                                <input type="number" id="bpDiastolic" min="00" max="200" placeholder="Diastolic"
+                                    required>
+                                <span class="bp-unit">mmHg</span>
+                            </div>
+                            <small class="form-text bengali-text">উদাহরণ: 120/80 mmHg</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="weight" class="form-label bengali-text required">ওজন</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="weight" class="form-control" min="1" max="300" step="0.1"
+                                    placeholder="Enter weight" required>
+                                <span class="input-unit bengali-text">কেজি</span>
+                            </div>
+                            <small class="form-text bengali-text">দশমিকসহ লিখতে পারবেন (যেমন: 65.5)</small>
+                        </div>
+                    </div>
+
+                    <!-- Current Symptoms -->
+                    <div class="form-group">
+                        <label for="currentSymptoms" class="form-label bengali-text required">বর্তমান লক্ষণ /
+                            সমস্যা</label>
+                        <textarea id="currentSymptoms" class="form-control" rows="3"
+                            placeholder="Describe your current health problems in English" required></textarea>
+                        <small class="form-text bengali-text">কী সমস্যায় আপনি চিকিৎসা নিতে চান?</small>
+                    </div>
+
+                    <!-- Medical History YES/NO (Required) -->
+                    <div class="form-group" id="medicalHistoryGroup">
+                        <label class="form-label bengali-text required">চিকিৎসা ইতিহাস আছে কি?</label>
+                        <div class="yes-no-toggle">
+                            <label class="toggle-option">
+                                <input type="radio" name="medicalHistory" value="Yes" required>
+                                <span class="toggle-label toggle-yes">
+                                    <i class="fas fa-check"></i> হ্যাঁ
+                                </span>
+                            </label>
+                            <label class="toggle-option">
+                                <input type="radio" name="medicalHistory" value="No">
+                                <span class="toggle-label toggle-no">
+                                    <i class="fas fa-times"></i> না
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Allergies YES/NO (Required) -->
+                    <div class="form-group" id="allergiesGroup">
+                        <label class="form-label bengali-text required">অ্যালার্জি আছে কি?</label>
+                        <div class="yes-no-toggle">
+                            <label class="toggle-option">
+                                <input type="radio" name="allergies" value="Yes" required>
+                                <span class="toggle-label toggle-yes">
+                                    <i class="fas fa-check"></i> হ্যাঁ
+                                </span>
+                            </label>
+                            <label class="toggle-option">
+                                <input type="radio" name="allergies" value="No">
+                                <span class="toggle-label toggle-no">
+                                    <i class="fas fa-times"></i> না
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Previous Medications YES/NO (Required) -->
+                    <div class="form-group" id="previousMedicationsGroup">
+                        <label class="form-label bengali-text required">পূর্ববর্তী ঔষধ আছে কি?</label>
+                        <div class="yes-no-toggle">
+                            <label class="toggle-option">
+                                <input type="radio" name="previousMedications" value="Yes" required>
+                                <span class="toggle-label toggle-yes">
+                                    <i class="fas fa-check"></i> হ্যাঁ
+                                </span>
+                            </label>
+                            <label class="toggle-option">
+                                <input type="radio" name="previousMedications" value="No">
+                                <span class="toggle-label toggle-no">
+                                    <i class="fas fa-times"></i> না
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 40px;">
+                        <button type="submit" class="btn btn-primary btn-block bengali-text">
+                            <i class="fas fa-user-plus"></i> রোগী নিবন্ধন করুন
+                        </button>
+                    </div>
+                </form>
+
+                <!-- PDF Preview will be inserted here dynamically -->
+
+                <!-- Status Check Section -->
+                <div class="status-check-section">
+                    <h3 class="bengali-text">আপনার স্ট্যাটাস চেক করুন</h3>
+                    <p class="bengali-text">ইতিমধ্যে নিবন্ধিত? আপনার নিবন্ধন আইডি ব্যবহার করে বর্তমান স্ট্যাটাস চেক
+                        করুন।</p>
+
+                    <form id="statusCheckForm" class="status-check-form">
+                        <div class="form-group">
+                            <label for="checkRegistrationId" class="form-label bengali-text">নিবন্ধন আইডি</label>
+                            <input type="text" id="checkRegistrationId" class="form-control"
+                                placeholder="যেমন: RJFFMC-" required>
+                        </div>
+
+                        <div class="form-group" style="text-align: center;">
+                            <button type="submit" class="btn btn-secondary bengali-text">
+                                <i class="fas fa-search"></i> স্ট্যাটাস চেক করুন
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="statusResult" style="display: none; margin-top: 30px;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" style="background: #333; color: white; padding: 50px 0 20px;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+            <div class="footer-content"
+                style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-bottom: 40px;">
+                <div class="footer-section">
+                    <h3 class="footer-title bengali-text"
+                        style="color: #e63946; margin-bottom: 20px; font-size: 1.3rem;">রক্তজবা ফাউন্ডেশন</h3>
+                    <p class="bengali-text" style="color: #bbb; line-height: 1.6; margin-bottom: 20px;">একটি অরাজনৈতিক
+                        মানবিক সামাজিক ও সেচ্ছাসেবী সংগঠন।</p>
+                    <div class="social-icons" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <a href="https://www.facebook.com/groups/795181972688739/"
+                            style="color: white; background: #444; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i
+                                class="fab fa-facebook-f"></i></a>
+                        <a href="https://m.me/j/AbYuekhvpv67GWlz/"
+                            style="color: white; background: #444; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i
+                                class="fab fa-facebook-messenger"></i></a>
+                        <a href="https://www.linkedin.com/in/roktojoba-foundation-550a12321/"
+                            style="color: white; background: #444; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i
+                                class="fa-brands fa-linkedin"></i></a>
+                        <a href="https://wa.me/8801960506601"
+                            style="color: white; background: #444; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i
+                                class="fab fa-whatsapp"></i></a>
+                        <a href="https://roktojobafoundation.github.io/qr/"
+                            style="color: white; background: #444; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i
+                                class="fas fa-qrcode"></i></a>
+                        <a href="tel:01960506601"
+                            style="color: white; background: #444; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none;"><i
+                                class="fas fa-phone"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section" style="margin-top: 30px;">
+                    <h3 class="footer-title bengali-text"
+                        style="color: #e63946; margin-bottom: 20px; font-size: 1.3rem;">আমাদের সহযোগী</h3>
+                    <div class="partner-logos"
+                        style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px;">
+                        <div class="logo-item"
+                            style="background: #fff; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <img src="assets/Arurora logo.jpg" alt="সহযোগী ১"
+                                style="max-width: 100%; height: 50px; object-fit: contain;">
+                        </div>
+                        <div class="logo-item"
+                            style="background: #fff; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <img src="assets/Feature Technology Innovation Logo.png" alt="সহযোগী ২"
+                                style="max-width: 100%; height: 50px; object-fit: contain;">
+                        </div>
+                        <div class="logo-item"
+                            style="background: #fff; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <img src="assets/partner3.png" alt="সহযোগী ৩"
+                                style="max-width: 100%; height: 50px; object-fit: contain;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3 class="footer-title bengali-text"
+                        style="color: #e63946; margin-bottom: 20px; font-size: 1.3rem;">যোগাযোগের তথ্য</h3>
+                    <p class="bengali-text"
+                        style="color: #bbb; margin-bottom: 15px; display: flex; align-items: flex-start; gap: 10px;"><i
+                            class="fas fa-map-marker-alt" style="color: #e63946; margin-top: 3px;"></i> মতলব(উত্তর), চাঁদপুর।</p>
+                    <p class="bengali-text"
+                        style="color: #bbb; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;"><i
+                            class="fas fa-phone" style="color: #e63946;"></i> +880 1960 506 601</p>
+                    <p class="bengali-text"
+                        style="color: #bbb; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;"><i
+                            class="fas fa-envelope" style="color: #e63946;"></i> roktojobafoundation@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="footer-bottom" style="text-align: center; padding-top: 30px; border-top: 1px solid #444;">
+                <p class="bengali-text" style="color: #bbb; margin-bottom: 10px;">&copy; Roktojoba Foundation - Free Medical Camp. All
+                    rights reserved.</p>
+                <p class="bengali-text" style="color: #bbb;">Roktojoba Foundation - Free Medical Camp 
+                    | Designed & Developed by Tasrik Hossain</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Files -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/patient.js"></script>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menuToggle')?.addEventListener('click', function () {
+            const navMenu = document.querySelector('.nav-menu');
+            navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        function adjustMenu() {
+            const menuToggle = document.getElementById('menuToggle');
+            const navMenu = document.querySelector('.nav-menu');
+
+            if (window.innerWidth <= 768) {
+                menuToggle.style.display = 'block';
+                navMenu.style.display = 'none';
+                navMenu.style.flexDirection = 'column';
+                navMenu.style.position = 'absolute';
+                navMenu.style.top = '100%';
+                navMenu.style.left = '0';
+                navMenu.style.right = '0';
+                navMenu.style.background = 'white';
+                navMenu.style.padding = '20px';
+                navMenu.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                navMenu.style.gap = '15px';
+            } else {
+                menuToggle.style.display = 'none';
+                navMenu.style.display = 'flex';
+                navMenu.style.position = 'static';
+                navMenu.style.background = 'transparent';
+                navMenu.style.padding = '0';
+                navMenu.style.boxShadow = 'none';
+            }
+        }
+
+        window.addEventListener('load', adjustMenu);
+        window.addEventListener('resize', adjustMenu);
+    </script>
+</body>
+
+</html>

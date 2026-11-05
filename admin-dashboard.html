@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Admin Dashboard | Roktojoba Foundation</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <!-- Icons & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles (admin.css must stay last) -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/admin.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="admin-container">
+
+        <!-- ================= SIDEBAR ================= -->
+        <aside class="admin-sidebar" id="adminSidebar" aria-label="Main navigation">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-droplet"></i><span>Admin Portal</span></h3>
+                <button class="sidebar-toggle" type="button" aria-label="Collapse sidebar"><i class="fas fa-chevron-left"></i></button>
+            </div>
+
+            <ul class="sidebar-nav">
+                <li><a href="#dashboard" class="nav-link active" id="dashboardLink"><i class="fas fa-gauge-high"></i><span>Dashboard</span></a></li>
+                <li><a href="#patients" class="nav-link" id="patientsLink"><i class="fas fa-user-injured"></i><span>Patients</span><span class="badge" id="patientBadge">0</span></a></li>
+                <li><a href="#doctors" class="nav-link" id="doctorsLink"><i class="fas fa-user-md"></i><span>Doctors</span><span class="badge" id="doctorBadge">0</span></a></li>
+                <li><a href="#volunteers" class="nav-link" id="volunteersLink"><i class="fas fa-hands-helping"></i><span>Volunteers</span><span class="badge" id="volunteerBadge">0</span></a></li>
+                <li><a href="#reports" class="nav-link" id="reportsLink"><i class="fas fa-chart-pie"></i><span>Reports</span></a></li>
+                <li><a href="#settings" class="nav-link" id="settingsLink"><i class="fas fa-sliders"></i><span>Settings</span></a></li>
+            </ul>
+
+            <div class="logout-btn">
+                <button class="btn btn-outline btn-block" id="logoutBtn" type="button"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+            </div>
+        </aside>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- ================= MAIN ================= -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <button class="mobile-menu-toggle" type="button" aria-label="Open menu"><i class="fas fa-bars"></i></button>
+                <div class="header-title">
+                    <h2 id="pageTitle">Dashboard</h2>
+                    <p><span id="todayDate"></span> · Roktojoba Foundation Free Medical Camp</p>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div>
+                        <div class="user-name" id="userName">Admin User</div>
+                        <div class="user-email" id="userEmail">admin@roktojoba.org</div>
+                    </div>
+                </div>
+            </header>
+
+            <div id="alertContainer" aria-live="polite"></div>
+
+            <div class="admin-content">
+
+                <!-- ============ DASHBOARD ============ -->
+                <section id="dashboardSection" class="dashboard-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-gauge-high"></i> Overview</h3>
+                        <div class="last-updated"><span class="live-dot"></span> Live · updated <span id="updateTime">--:--:--</span></div>
+                    </div>
+
+                    <div class="flow-card">
+                        <div class="flow-top">
+                            <div><strong id="flowTotal">0</strong> <span>patients registered</span></div>
+                            <span id="flowSummary">No patients yet</span>
+                        </div>
+                        <div class="flow-bar" role="img" aria-label="Patient flow">
+                            <i class="flow-waiting" id="flowWaiting" style="width:0"></i>
+                            <i class="flow-ongoing" id="flowOngoing" style="width:0"></i>
+                            <i class="flow-done" id="flowDone" style="width:0"></i>
+                        </div>
+                        <div class="flow-legend">
+                            <span><i class="flow-waiting"></i><b id="lgWaiting">0</b>Waiting</span>
+                            <span><i class="flow-ongoing"></i><b id="lgOngoing">0</b>Under checkup</span>
+                            <span><i class="flow-done"></i><b id="lgDone">0</b>Completed</span>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-stats">
+                        <div class="stat-card-admin"><div class="stat-icon-admin"><i class="fas fa-user-injured"></i></div><div class="stat-content-admin"><h3 id="totalPatientsCount">0</h3><p>Total Patients</p></div></div>
+                        <div class="stat-card-admin"><div class="stat-icon-admin"><i class="fas fa-clock"></i></div><div class="stat-content-admin"><h3 id="waitingPatientsCount">0</h3><p>Waiting</p></div></div>
+                        <div class="stat-card-admin"><div class="stat-icon-admin"><i class="fas fa-stethoscope"></i></div><div class="stat-content-admin"><h3 id="ongoingPatientsCount">0</h3><p>Under Checkup</p></div></div>
+                        <div class="stat-card-admin"><div class="stat-icon-admin"><i class="fas fa-circle-check"></i></div><div class="stat-content-admin"><h3 id="completedPatientsCount">0</h3><p>Completed</p></div></div>
+                        <div class="stat-card-admin"><div class="stat-icon-admin"><i class="fas fa-user-md"></i></div><div class="stat-content-admin"><h3 id="totalDoctorsCount">0</h3><p>Doctors</p></div></div>
+                        <div class="stat-card-admin"><div class="stat-icon-admin"><i class="fas fa-hands-helping"></i></div><div class="stat-content-admin"><h3 id="totalVolunteersCount">0</h3><p>Volunteers</p></div></div>
+                        <div class="stat-card-admin"><div class="stat-icon-admin"><i class="fas fa-hourglass-half"></i></div><div class="stat-content-admin"><h3 id="avgWaitTime">0 min</h3><p>Avg. Wait Time</p></div></div>
+                        <div class="stat-card-admin"><div class="stat-icon-admin"><i class="fas fa-chart-line"></i></div><div class="stat-content-admin"><h3 id="completionRate">0%</h3><p>Completion Rate</p></div></div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <div class="chart-header"><h3>Patient status</h3></div>
+                            <div class="chart-box"><canvas id="patientStatusChart"></canvas></div>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-header"><h3>Registrations, last 7 days</h3></div>
+                            <div class="chart-box"><canvas id="dailyRegistrationChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-title">
+                            <h3><i class="fas fa-clock-rotate-left"></i> Recent activity</h3>
+                            <button class="btn btn-sm btn-secondary" id="refreshActivity" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead><tr><th>Time</th><th>Activity</th><th>Person</th><th>Details</th></tr></thead>
+                                <tbody id="activityTableBody"><tr><td colspan="4" class="text-center">Loading activities...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ PATIENTS ============ -->
+                <section id="patientsSection" class="dashboard-section" hidden>
+                    <div class="section-header">
+                        <h3><i class="fas fa-user-injured"></i> Patient Management</h3>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" id="addPatientBtn" type="button"><i class="fas fa-user-plus"></i> Add Patient</button>
+                            <button class="btn btn-secondary" id="exportPatientsBtn" type="button"><i class="fas fa-file-csv"></i> Export CSV</button>
+                        </div>
+                    </div>
+
+                    <div class="filters-card">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="patientSearch">Search</label>
+                                <div class="input-with-icon"><i class="fas fa-search"></i><input type="search" id="patientSearch" class="form-control" placeholder="Name, ID or phone"></div>
+                            </div>
+                            <div class="filter-group">
+                                <label for="patientStatusFilter">Status</label>
+                                <select id="patientStatusFilter" class="form-control">
+                                    <option value="">All status</option><option value="Waiting">Waiting</option>
+                                    <option value="Under Checkup">Under Checkup</option><option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="patientDoctorFilter">Doctor</label>
+                                <select id="patientDoctorFilter" class="form-control"><option value="">All doctors</option></select>
+                            </div>
+                            <div class="filter-group" style="flex:0 0 auto"><button class="btn btn-secondary" id="clearFiltersBtn" type="button"><i class="fas fa-xmark"></i> Clear</button></div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-title"><h3>Registered patients</h3><span class="table-count" id="patientCount">0 patients</span></div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="patientsTable">
+                                <thead><tr><th>Reg. ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Registered</th><th>Status</th><th>Doctor</th><th>Actions</th></tr></thead>
+                                <tbody id="patientsTableBody"><tr><td colspan="9" class="text-center">Loading patients...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ DOCTORS ============ -->
+                <section id="doctorsSection" class="dashboard-section" hidden>
+                    <div class="section-header">
+                        <h3><i class="fas fa-user-md"></i> Doctor Management</h3>
+                        <div class="header-actions"><button class="btn btn-primary" id="addDoctorBtn" type="button"><i class="fas fa-user-plus"></i> Add Doctor</button></div>
+                    </div>
+                    <div class="stats-cards-small">
+                        <div class="stat-card-small"><div class="stat-icon-small"><i class="fas fa-user-md"></i></div><div><h4 id="totalDoctorsSmall">0</h4><p>Total Doctors</p></div></div>
+                        <div class="stat-card-small"><div class="stat-icon-small"><i class="fas fa-user-clock"></i></div><div><h4 id="activeDoctorsSmall">0</h4><p>Active</p></div></div>
+                        <div class="stat-card-small"><div class="stat-icon-small"><i class="fas fa-users"></i></div><div><h4 id="avgPatientsPerDoctor">0</h4><p>Avg. Patients / Doctor</p></div></div>
+                        <div class="stat-card-small"><div class="stat-icon-small"><i class="fas fa-clock"></i></div><div><h4 id="avgCheckupTimeDoctor">0 min</h4><p>Avg. Checkup Time</p></div></div>
+                    </div>
+                    <div class="table-container">
+                        <div class="table-title"><h3>Registered doctors</h3></div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead><tr><th>Doctor ID</th><th>Name</th><th>Specialization</th><th>Phone</th><th>Email</th><th>Status</th><th>Patients Today</th><th>Avg. Time</th><th>Actions</th></tr></thead>
+                                <tbody id="doctorsTableBody"><tr><td colspan="9" class="text-center">Loading doctors...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ VOLUNTEERS ============ -->
+                <section id="volunteersSection" class="dashboard-section" hidden>
+                    <div class="section-header">
+                        <h3><i class="fas fa-hands-helping"></i> Volunteer Management</h3>
+                        <div class="header-actions"><button class="btn btn-primary" id="addVolunteerBtn" type="button"><i class="fas fa-user-plus"></i> Add Volunteer</button></div>
+                    </div>
+                    <div class="stats-cards-small">
+                        <div class="stat-card-small"><div class="stat-icon-small"><i class="fas fa-hands-helping"></i></div><div><h4 id="totalVolunteersSmall">0</h4><p>Total Volunteers</p></div></div>
+                        <div class="stat-card-small"><div class="stat-icon-small"><i class="fas fa-user-check"></i></div><div><h4 id="checkedInVolunteers">0</h4><p>Checked In</p></div></div>
+                        <div class="stat-card-small"><div class="stat-icon-small"><i class="fas fa-list-check"></i></div><div><h4 id="assignedVolunteers">0</h4><p>Tasks Assigned</p></div></div>
+                        <div class="stat-card-small"><div class="stat-icon-small"><i class="fas fa-clock"></i></div><div><h4 id="avgHoursVolunteer">0 hrs</h4><p>Avg. Available Hours</p></div></div>
+                    </div>
+                    <div class="table-container">
+                        <div class="table-title"><h3>Registered volunteers</h3></div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead><tr><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Area</th><th>Status</th><th>Task</th><th>Checked In</th><th>Actions</th></tr></thead>
+                                <tbody id="volunteersTableBody"><tr><td colspan="9" class="text-center">Loading volunteers...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ REPORTS ============ -->
+                <section id="reportsSection" class="dashboard-section" hidden>
+                    <div class="section-header">
+                        <h3><i class="fas fa-chart-pie"></i> Reports &amp; Analytics</h3>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" id="exportReportBtn" type="button"><i class="fas fa-file-csv"></i> Export CSV</button>
+                            <button class="btn btn-primary" id="printReportBtn" type="button"><i class="fas fa-print"></i> Print / PDF</button>
+                        </div>
+                    </div>
+                    <div class="filters-card">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="reportType">Report type</label>
+                                <select id="reportType" class="form-control">
+                                    <option value="daily">Daily Summary</option><option value="patient">Patient Analysis</option>
+                                    <option value="doctor">Doctor Performance</option><option value="volunteer">Volunteer Report</option>
+                                </select>
+                            </div>
+                            <div class="filter-group date-range">
+                                <div><label for="reportStartDate">From</label><input type="date" id="reportStartDate" class="form-control"></div>
+                                <span>to</span>
+                                <div><label for="reportEndDate">To</label><input type="date" id="reportEndDate" class="form-control"></div>
+                            </div>
+                            <div class="filter-group" style="flex:0 0 auto"><button class="btn btn-primary" id="generateReport" type="button"><i class="fas fa-chart-bar"></i> Generate</button></div>
+                        </div>
+                    </div>
+                    <div class="report-preview" id="reportPreview">
+                        <div class="report-header"><h2 id="reportTitle">Medical Camp Report</h2><p id="reportRange"></p></div>
+                        <div class="report-stats" id="reportStats"></div>
+                        <div class="report-charts"><canvas id="reportChart"></canvas></div>
+                        <div class="report-summary" id="reportSummary">Choose a report type and select Generate.</div>
+                    </div>
+                </section>
+
+                <!-- ============ SETTINGS ============ -->
+                <section id="settingsSection" class="dashboard-section" hidden>
+                    <div class="section-header"><h3><i class="fas fa-sliders"></i> System Settings</h3></div>
+                    <div class="settings-tabs">
+                        <div class="tab-buttons" role="tablist">
+                            <button class="tab-btn active" data-tab="general" type="button">General</button>
+                            <button class="tab-btn" data-tab="camp" type="button">Camp</button>
+                            <button class="tab-btn" data-tab="users" type="button">Admin account</button>
+                            <button class="tab-btn" data-tab="notifications" type="button">Notifications</button>
+                        </div>
+
+                        <div class="tab-content active" id="generalTab">
+                            <form id="generalSettingsForm" data-group="general">
+                                <div class="form-group"><label class="form-label" for="s_campName">Camp name</label><input id="s_campName" name="campName" class="form-control" value="Roktojoba Foundation Free Medical Camp"></div>
+                                <div class="form-row">
+                                    <div class="form-group"><label class="form-label" for="s_campDate">Camp date</label><input id="s_campDate" name="campDate" type="date" class="form-control"></div>
+                                    <div class="form-group"><label class="form-label" for="s_start">Start time</label><input id="s_start" name="startTime" type="time" class="form-control" value="08:00"></div>
+                                    <div class="form-group"><label class="form-label" for="s_end">End time</label><input id="s_end" name="endTime" type="time" class="form-control" value="17:00"></div>
+                                </div>
+                                <div class="form-group"><label class="form-label" for="s_loc">Camp location</label><textarea id="s_loc" name="location" class="form-control" rows="2">123 Medical Street, Dhaka, Bangladesh</textarea></div>
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save settings</button>
+                            </form>
+                        </div>
+
+                        <div class="tab-content" id="campTab">
+                            <form id="campSettingsForm" data-group="camp">
+                                <div class="form-group"><label class="form-label" for="s_reg">Registration start date</label><input id="s_reg" name="regStart" type="date" class="form-control"><small>When patient registration opens (15 days before camp)</small></div>
+                                <div class="form-row">
+                                    <div class="form-group"><label class="form-label" for="s_max">Max patients per day</label><input id="s_max" name="maxPatients" type="number" class="form-control" value="500" min="1" max="1000"></div>
+                                    <div class="form-group"><label class="form-label" for="s_avg">Avg. checkup time (min)</label><input id="s_avg" name="avgCheckup" type="number" class="form-control" value="15" min="5" max="60"></div>
+                                    <div class="form-group"><label class="form-label" for="s_shift">Doctor shift (hours)</label><input id="s_shift" name="shiftHours" type="number" class="form-control" value="8" min="4" max="12"></div>
+                                </div>
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save settings</button>
+                            </form>
+                        </div>
+
+                        <div class="tab-content" id="usersTab">
+                            <p class="users-note">You are signed in as:</p>
+                            <div class="patient-info-card">
+                                <p style="margin:0 0 4px"><strong id="acctName">-</strong></p>
+                                <p style="margin:0;color:var(--gray-color)" id="acctEmail">-</p>
+                            </div>
+                            <p class="users-note" style="margin-top:16px">Admin accounts are created in Firebase Authentication.</p>
+                            <button class="btn btn-secondary" id="changeAdminPwBtn" type="button"><i class="fas fa-key"></i> Send password reset email</button>
+                        </div>
+
+                        <div class="tab-content" id="notificationsTab">
+                            <form id="notifSettingsForm" data-group="notifications">
+                                <div class="form-group"><label><input type="checkbox" name="notifNewPatient" checked> Notify me when a new patient registers</label></div>
+                                <div class="form-group"><label><input type="checkbox" name="notifCompleted"> Notify me when a checkup is completed</label></div>
+                                <div class="form-group"><label><input type="checkbox" name="notifVolunteer" checked> Notify me when a volunteer checks in</label></div>
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts: order matters. admin-ui.js must load after admin.js -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth-manager.js"></script>
+    <script src="js/main-fixed.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/admin-ui.js"></script>
+</body>
+
+</html>

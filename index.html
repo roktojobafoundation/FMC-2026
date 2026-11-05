@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roktojoba Foundation - Free Medical Camp | 16 Dec 2025</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-container">
+                <a href="index.html" class="logo">
+                    <img src="assets/logo.png" alt="Roktojoba Foundation Logo">
+                    <span>Roktojoba Foundation</span>
+                </a>
+                
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="active"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="patient-registration.html"><i class="fas fa-user-plus"></i> Patient Registration</a></li>
+                    <li><a href="volunteer-registration.html"><i class="fas fa-hands-helping"></i> Volunteer Registration</a></li>
+                    <li><a href="admin-login.html"><i class="fas fa-user-shield"></i> Admin Portal</a></li>
+                    <li><a href="doctor-portal.html"><i class="fas fa-user-md"></i> Doctor Portal</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title animate-fade-in">Free Medical Camp</h1>
+                <h2 class="hero-subtitle">December 16, 2025</h2>
+                <p class="hero-description">
+                    Providing free medical services to the community. Register now for consultation with our expert doctors.
+                </p>
+                
+                <div class="hero-buttons">
+                    <a href="patient-registration.html" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Patient Registration
+                    </a>
+                    <a href="volunteer-registration.html" class="btn btn-secondary">
+                        <i class="fas fa-hands-helping"></i> Become a Volunteer
+                    </a>
+                </div>
+            </div>
+            
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-injured"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number" id="totalPatients">0</h3>
+                        <p class="stat-label">Registered Patients</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number" id="totalDoctors">0</h3>
+                        <p class="stat-label">Doctors Available</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number" id="totalVolunteers">0</h3>
+                        <p class="stat-label">Volunteers</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">15</h3>
+                        <p class="stat-label">Days Left</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Our Medical Camp Features</h2>
+            <p class="section-subtitle">Comprehensive healthcare services for everyone</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <h3 class="feature-title">Easy Registration</h3>
+                    <p class="feature-description">
+                        Simple and mobile-friendly patient registration process. Register 15 days in advance.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <h3 class="feature-title">Expert Doctors</h3>
+                    <p class="feature-description">
+                        Consultation with experienced medical professionals from various specialties.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                    <h3 class="feature-title">Free Medicines</h3>
+                    <p class="feature-description">
+                        Free basic medicines will be provided based on doctor's prescription.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">Real-time Tracking</h3>
+                    <p class="feature-description">
+                        Track your status: Waiting → Under Checkup → Completed.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services">
+        <div class="container">
+            <h2 class="section-title">Available Medical Services</h2>
+            
+            <div class="services-grid">
+                <div class="service-item">
+                    <i class="fas fa-heartbeat"></i>
+                    <h3>General Consultation</h3>
+                </div>
+                
+                <div class="service-item">
+                    <i class="fas fa-stethoscope"></i>
+                    <h3>Cardiology Checkup</h3>
+                </div>
+                
+                <div class="service-item">
+                    <i class="fas fa-eye"></i>
+                    <h3>Eye Examination</h3>
+                </div>
+                
+                <div class="service-item">
+                    <i class="fas fa-tooth"></i>
+                    <h3>Dental Checkup</h3>
+                </div>
+                
+                <div class="service-item">
+                    <i class="fas fa-brain"></i>
+                    <h3>Neurology</h3>
+                </div>
+                
+                <div class="service-item">
+                    <i class="fas fa-baby"></i>
+                    <h3>Pediatrics</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">Roktojoba Foundation</h3>
+                    <p>Providing free medical services to underprivileged communities since 2010.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="patient-registration.html">Patient Registration</a></li>
+                        <li><a href="volunteer-registration.html">Volunteer Registration</a></li>
+                        <li><a href="admin-login.html">Admin Portal</a></li>
+                        <li><a href="doctor-portal.html">Doctor Portal</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3 class="footer-title">Contact Information</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Medical Street, Dhaka, Bangladesh</p>
+                    <p><i class="fas fa-phone"></i> +880 1234 567890</p>
+                    <p><i class="fas fa-envelope"></i> info@roktojobafoundation.org</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Roktojoba Foundation. All rights reserved.</p>
+                <p>Free Medical Camp - December 16, 2025</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Files -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

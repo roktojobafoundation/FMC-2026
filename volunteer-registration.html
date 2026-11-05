@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volunteer Registration | Roktojoba Foundation</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-container">
+                <a href="index.html" class="logo">
+                    <img src="assets/logo.png" alt="Roktojoba Foundation Logo">
+                    <span>Roktojoba Foundation</span>
+                </a>
+                
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <ul class="nav-menu">
+                    <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="patient-registration.html"><i class="fas fa-user-plus"></i> Patient Registration</a></li>
+                    <li><a href="volunteer-registration.html" class="active"><i class="fas fa-hands-helping"></i> Volunteer Registration</a></li>
+                    <li><a href="admin-login.html"><i class="fas fa-user-shield"></i> Admin Portal</a></li>
+                    <li><a href="doctor-portal.html"><i class="fas fa-user-md"></i> Doctor Portal</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Alert Container -->
+            <div id="alertContainer"></div>
+            
+            <div class="form-container animate-fade-in">
+                <div class="form-header">
+                    <h1 class="form-title">Volunteer Registration</h1>
+                    <p class="form-subtitle">Join us in making a difference on December 16, 2025</p>
+                    
+                    <div class="form-steps">
+                        <div class="step active">
+                            <div class="step-number">1</div>
+                            <div class="step-label">Personal Info</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-label">Background</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-label">Preferences</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-label">Review</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="volunteerRegistrationForm">
+                    <!-- Step 1: Personal Information -->
+                    <div class="form-step active" id="step1">
+                        <h3 class="section-subtitle" style="text-align: left; margin: 0 0 20px;">Personal Information</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="volunteerName" class="form-label">Full Name *</label>
+                                <input type="text" id="volunteerName" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="volunteerAge" class="form-label">Age *</label>
+                                <input type="number" id="volunteerAge" class="form-control" min="18" max="70" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="volunteerGender" class="form-label">Gender *</label>
+                                <select id="volunteerGender" class="form-control" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="volunteerPhone" class="form-label">Phone Number *</label>
+                                <input type="tel" id="volunteerPhone" class="form-control" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="volunteerEmail" class="form-label">Email Address</label>
+                                <input type="email" id="volunteerEmail" class="form-control">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="volunteerEmergencyContact" class="form-label">Emergency Contact *</label>
+                                <input type="tel" id="volunteerEmergencyContact" class="form-control" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="volunteerAddress" class="form-label">Full Address *</label>
+                            <textarea id="volunteerAddress" class="form-control" rows="2" required></textarea>
+                        </div>
+                        
+                        <div class="form-navigation">
+                            <button type="button" class="btn btn-primary next-step" data-next="step2">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Background Information -->
+                    <div class="form-step" id="step2">
+                        <h3 class="section-subtitle" style="text-align: left; margin: 0 0 20px;">Background Information</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="volunteerOccupation" class="form-label">Occupation</label>
+                                <input type="text" id="volunteerOccupation" class="form-control" placeholder="Student, Teacher, Business, etc.">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="volunteerEducation" class="form-label">Education Level</label>
+                                <select id="volunteerEducation" class="form-control">
+                                    <option value="">Select Education</option>
+                                    <option value="High School">High School</option>
+                                    <option value="College">College</option>
+                                    <option value="Bachelor's Degree">Bachelor's Degree</option>
+                                    <option value="Master's Degree">Master's Degree</option>
+                                    <option value="Doctorate">Doctorate</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="volunteerSkills" class="form-label">Skills & Qualifications</label>
+                            <textarea id="volunteerSkills" class="form-control" rows="3" placeholder="Medical knowledge, First aid training, Language skills, etc."></textarea>
+                            <small class="form-text">List any skills that might be useful for the medical camp</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="previousExperience" class="form-label">Previous Volunteer Experience</label>
+                            <textarea id="previousExperience" class="form-control" rows="3" placeholder="Describe any previous volunteer work or similar experience"></textarea>
+                        </div>
+                        
+                        <div class="form-navigation">
+                            <button type="button" class="btn btn-secondary prev-step" data-prev="step1">
+                                <i class="fas fa-arrow-left"></i> Previous
+                            </button>
+                            <button type="button" class="btn btn-primary next-step" data-next="step3">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Preferences -->
+                    <div class="form-step" id="step3">
+                        <h3 class="section-subtitle" style="text-align: left; margin: 0 0 20px;">Volunteer Preferences</h3>
+                        
+                        <div class="form-group">
+                            <label for="preferredArea" class="form-label">Preferred Volunteer Area *</label>
+                            <select id="preferredArea" class="form-control" required>
+                                <option value="">Select preferred area</option>
+                                <option value="registration">Registration Desk</option>
+                                <option value="crowd_control">Crowd Control & Guidance</option>
+                                <option value="patient_support">Patient Support & Assistance</option>
+                                <option value="medicine_distribution">Medicine Distribution</option>
+                                <option value="food_water">Food & Water Distribution</option>
+                                <option value="cleanup">Cleanup & Maintenance</option>
+                                <option value="transportation">Patient Transportation</option>
+                                <option value="other">Anywhere Needed</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="volunteerAvailability" class="form-label">Availability *</label>
+                            <select id="volunteerAvailability" class="form-control" required>
+                                <option value="">Select availability</option>
+                                <option value="full_day">Full Day (8 AM - 5 PM)</option>
+                                <option value="morning">Morning Shift (8 AM - 1 PM)</option>
+                                <option value="afternoon">Afternoon Shift (1 PM - 5 PM)</option>
+                                <option value="flexible">Flexible - Any Shift</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">T-shirt Size</label>
+                            <div class="size-options">
+                                <label class="size-option">
+                                    <input type="radio" name="tshirtSize" value="S">
+                                    <span>S</span>
+                                </label>
+                                <label class="size-option">
+                                    <input type="radio" name="tshirtSize" value="M">
+                                    <span>M</span>
+                                </label>
+                                <label class="size-option">
+                                    <input type="radio" name="tshirtSize" value="L">
+                                    <span>L</span>
+                                </label>
+                                <label class="size-option">
+                                    <input type="radio" name="tshirtSize" value="XL">
+                                    <span>XL</span>
+                                </label>
+                                <label class="size-option">
+                                    <input type="radio" name="tshirtSize" value="XXL">
+                                    <span>XXL</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="additionalInfo" class="form-label">Additional Information</label>
+                            <textarea id="additionalInfo" class="form-control" rows="3" placeholder="Any other information you'd like to share..."></textarea>
+                        </div>
+                        
+                        <div class="form-navigation">
+                            <button type="button" class="btn btn-secondary prev-step" data-prev="step2">
+                                <i class="fas fa-arrow-left"></i> Previous
+                            </button>
+                            <button type="button" class="btn btn-primary next-step" data-next="step4">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Review & Submit -->
+                    <div class="form-step" id="step4">
+                        <h3 class="section-subtitle" style="text-align: left; margin: 0 0 20px;">Review & Submit</h3>
+                        
+                        <div class="review-summary">
+                            <h4>Please review your information:</h4>
+                            
+                            <div class="review-section">
+                                <h5>Personal Information</h5>
+                                <div class="review-row">
+                                    <span class="review-label">Full Name:</span>
+                                    <span class="review-value" id="reviewName"></span>
+                                </div>
+                                <div class="review-row">
+                                    <span class="review-label">Age & Gender:</span>
+                                    <span class="review-value" id="reviewAgeGender"></span>
+                                </div>
+                                <div class="review-row">
+                                    <span class="review-label">Phone:</span>
+                                    <span class="review-value" id="reviewPhone"></span>
+                                </div>
+                                <div class="review-row">
+                                    <span class="review-label">Email:</span>
+                                    <span class="review-value" id="reviewEmail"></span>
+                                </div>
+                                <div class="review-row">
+                                    <span class="review-label">Address:</span>
+                                    <span class="review-value" id="reviewAddress"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="review-section">
+                                <h5>Background Information</h5>
+                                <div class="review-row">
+                                    <span class="review-label">Occupation:</span>
+                                    <span class="review-value" id="reviewOccupation"></span>
+                                </div>
+                                <div class="review-row">
+                                    <span class="review-label">Education:</span>
+                                    <span class="review-value" id="reviewEducation"></span>
+                                </div>
+                                <div class="review-row">
+                                    <span class="review-label">Skills:</span>
+                                    <span class="review-value" id="reviewSkills"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="review-section">
+                                <h5>Volunteer Preferences</h5>
+                                <div class="review-row">
+                                    <span class="review-label">Preferred Area:</span>
+                                    <span class="review-value" id="reviewArea"></span>
+                                </div>
+                                <div class="review-row">
+                                    <span class="review-label">Availability:</span>
+                                    <span class="review-value" id="reviewAvailability"></span>
+                                </div>
+                                <div class="review-row">
+                                    <span class="review-label">T-shirt Size:</span>
+                                    <span class="review-value" id="reviewTshirtSize"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" id="termsAgreement" class="form-check-input" required>
+                                <label for="termsAgreement" class="form-check-label">
+                                    I agree to the terms and conditions of volunteering *
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" id="healthDeclaration" class="form-check-input" required>
+                                <label for="healthDeclaration" class="form-check-label">
+                                    I declare that I am in good health and able to perform volunteer duties *
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" id="photoConsent" class="form-check-input">
+                                <label for="photoConsent" class="form-check-label">
+                                    I consent to photographs/videos being taken during the event
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-navigation">
+                            <button type="button" class="btn btn-secondary prev-step" data-prev="step3">
+                                <i class="fas fa-arrow-left"></i> Previous
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check-circle"></i> Submit Registration
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- Confirmation Section -->
+                <div id="volunteerConfirmationSection" style="display: none; margin-top: 40px;" class="animate-fade-in">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h4>Registration Successful!</h4>
+                            <p>Thank you for registering as a volunteer. We will contact you soon with further details.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="confirmation-card">
+                        <h3>Registration Confirmation</h3>
+                        <div class="confirmation-details">
+                            <p><strong>Name:</strong> <span id="confirmationVolunteerName"></span></p>
+                            <p><strong>Phone:</strong> <span id="confirmationVolunteerPhone"></span></p>
+                            <p><strong>Preferred Area:</strong> <span id="confirmationVolunteerArea"></span></p>
+                            <p><strong>Status:</strong> <span id="confirmationVolunteerStatus" class="status-badge status-waiting">Pending</span></p>
+                            <p><strong>Registration Date:</strong> <span id="confirmationVolunteerDate"></span></p>
+                        </div>
+                        <div class="confirmation-instructions">
+                            <h4>Next Steps:</h4>
+                            <ul>
+                                <li>You will receive a confirmation call within 3 days</li>
+                                <li>Volunteer orientation: December 15, 2025 at 3 PM</li>
+                                <li>Report on December 16 at 7:30 AM</li>
+                                <li>Bring your ID card and this confirmation</li>
+                                <li>Wear comfortable clothes and shoes</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="confirmation-actions">
+                            <button class="btn btn-primary" id="printConfirmationBtn">
+                                <i class="fas fa-print"></i> Print Confirmation
+                            </button>
+                            <button class="btn btn-secondary" id="newRegistrationBtn">
+                                <i class="fas fa-user-plus"></i> New Registration
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Volunteer Information -->
+            <div class="info-section" style="margin-top: 60px;">
+                <h2 class="section-title">Volunteer Information</h2>
+                
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>Schedule</h3>
+                        <p>Camp Day: December 16, 2025</p>
+                        <p>Reporting Time: 7:30 AM</p>
+                        <p>Orientation: December 15, 3 PM</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3>Location</h3>
+                        <p>123 Medical Street</p>
+                        <p>Dhaka, Bangladesh</p>
+                        <p>Parking available on-site</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h3>Benefits</h3>
+                        <p>Free T-shirt & ID card</p>
+                        <p>Lunch & refreshments</p>
+                        <p>Volunteer certificate</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <h3>Contact</h3>
+                        <p>Volunteer Coordinator</p>
+                        <p>+880 1234 567890</p>
+                        <p>volunteer@roktojobafoundation.org</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FAQ Section -->
+            <div class="faq-section" style="margin-top: 60px;">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+                
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            What are the requirements to volunteer?
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>You must be at least 18 years old, in good health, and able to commit to the full shift. No medical experience is required for most positions.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            What should I wear?
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Wear comfortable clothes and shoes. You will receive a volunteer T-shirt on the day of the event that must be worn during your shift.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            Will training be provided?
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Yes, there will be an orientation session on December 15 at 3 PM. All volunteers must attend to receive their assignments and training.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            Can I choose my volunteer area?
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>You can indicate your preference during registration, but final assignments will be based on camp needs and your skills/experience.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">Roktojoba Foundation</h3>
+                    <p>Providing free medical services to underprivileged communities since 2010.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="patient-registration.html">Patient Registration</a></li>
+                        <li><a href="volunteer-registration.html">Volunteer Registration</a></li>
+                        <li><a href="admin-login.html">Admin Portal</a></li>
+                        <li><a href="doctor-portal.html">Doctor Portal</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3 class="footer-title">Contact Information</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Medical Street, Dhaka, Bangladesh</p>
+                    <p><i class="fas fa-phone"></i> +880 1234 567890</p>
+                    <p><i class="fas fa-envelope"></i> info@roktojobafoundation.org</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Roktojoba Foundation. All rights reserved.</p>
+                <p>Free Medical Camp - December 16, 2025</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Files -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/volunteer.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize volunteer registration
+            window.volunteerUtils.initVolunteerRegistration();
+            
+            // Add custom styles
+            const style = document.createElement('style');
+            style.textContent = `
+                .form-header {
+                    text-align: center;
+                    margin-bottom: 40px;
+                }
+                
+                .form-steps {
+                    display: flex;
+                    justify-content: center;
+                    margin-top: 30px;
+                    flex-wrap: wrap;
+                }
+                
+                .step {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    margin: 0 15px;
+                    opacity: 0.5;
+                    transition: var(--transition);
+                }
+                
+                .step.active {
+                    opacity: 1;
+                }
+                
+                .step-number {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background-color: #e9ecef;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 600;
+                    color: var(--gray-color);
+                    margin-bottom: 10px;
+                    transition: var(--transition);
+                }
+                
+                .step.active .step-number {
+                    background-color: var(--primary-color);
+                    color: white;
+                }
+                
+                .step-label {
+                    font-size: 0.9rem;
+                    color: var(--gray-color);
+                    text-align: center;
+                }
+                
+                .step.active .step-label {
+                    color: var(--dark-color);
+                    font-weight: 500;
+                }
+                
+                .form-step {
+                    display: none;
+                }
+                
+                .form-step.active {
+                    display: block;
+                    animation: fadeIn 0.5s ease-out;
+                }
+                
+                .form-navigation {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 40px;
+                    padding-top: 20px;
+                    border-top: 1px solid #eee;
+                }
+                
+                .size-options {
+                    display: flex;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+                
+                .size-option {
+                    display: inline-block;
+                }
+                
+                .size-option input[type="radio"] {
+                    display: none;
+                }
+                
+                .size-option span {
+                    display: inline-block;
+                    width: 50px;
+                    height: 50px;
+                    border: 2px solid #ddd;
+                    border-radius: var(--border-radius);
+                    text-align: center;
+                    line-height: 46px;
+                    cursor: pointer;
+                    transition: var(--transition);
+                }
+                
+                .size-option input[type="radio"]:checked + span {
+                    border-color: var(--primary-color);
+                    background-color: rgba(230, 57, 70, 0.1);
+                    color: var(--primary-color);
+                }
+                
+                .review-summary {
+                    background-color: #f8f9fa;
+                    border-radius: var(--border-radius);
+                    padding: 25px;
+                    margin-bottom: 25px;
+                }
+                
+                .review-summary h4 {
+                    color: var(--secondary-color);
+                    margin-bottom: 20px;
+                    padding-bottom: 10px;
+                    border-bottom: 1px solid #dee2e6;
+                }
+                
+                .review-section {
+                    margin-bottom: 25px;
+                }
+                
+                .review-section:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .review-section h5 {
+                    color: var(--accent-color);
+                    margin-bottom: 15px;
+                    font-size: 1.1rem;
+                }
+                
+                .review-row {
+                    display: flex;
+                    margin-bottom: 10px;
+                    padding-bottom: 10px;
+                    border-bottom: 1px dashed #dee2e6;
+                }
+                
+                .review-row:last-child {
+                    border-bottom: none;
+                    margin-bottom: 0;
+                    padding-bottom: 0;
+                }
+                
+                .review-label {
+                    font-weight: 500;
+                    color: var(--dark-color);
+                    width: 180px;
+                    flex-shrink: 0;
+                }
+                
+                .review-value {
+                    color: var(--gray-color);
+                    flex: 1;
+                }
+                
+                .confirmation-card {
+                    background-color: white;
+                    border-radius: var(--border-radius);
+                    padding: 30px;
+                    box-shadow: var(--box-shadow);
+                    margin-top: 20px;
+                }
+                
+                .confirmation-card h3 {
+                    color: var(--secondary-color);
+                    margin-bottom: 25px;
+                    padding-bottom: 15px;
+                    border-bottom: 1px solid #eee;
+                }
+                
+                .confirmation-details {
+                    margin-bottom: 30px;
+                }
+                
+                .confirmation-details p {
+                    margin-bottom: 12px;
+                    display: flex;
+                }
+                
+                .confirmation-details strong {
+                    width: 180px;
+                    flex-shrink: 0;
+                }
+                
+                .confirmation-instructions {
+                    background-color: #f8f9fa;
+                    border-radius: var(--border-radius);
+                    padding: 20px;
+                    margin-bottom: 30px;
+                }
+                
+                .confirmation-instructions h4 {
+                    color: var(--secondary-color);
+                    margin-bottom: 15px;
+                }
+                
+                .confirmation-instructions ul {
+                    padding-left: 20px;
+                }
+                
+                .confirmation-instructions li {
+                    margin-bottom: 8px;
+                    color: var(--gray-color);
+                }
+                
+                .confirmation-actions {
+                    display: flex;
+                    gap: 15px;
+                    justify-content: center;
+                }
+                
+                .info-section {
+                    text-align: center;
+                }
+                
+                .info-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 30px;
+                    margin-top: 40px;
+                }
+                
+                .info-card {
+                    background-color: white;
+                    border-radius: var(--border-radius);
+                    padding: 30px;
+                    text-align: center;
+                    box-shadow: var(--box-shadow);
+                    transition: var(--transition);
+                }
+                
+                .info-card:hover {
+                    transform: translateY(-5px);
+                }
+                
+                .info-icon {
+                    width: 70px;
+                    height: 70px;
+                    border-radius: 50%;
+                    background-color: rgba(69, 123, 157, 0.1);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 20px;
+                    color: var(--accent-color);
+                    font-size: 1.8rem;
+                }
+                
+                .info-card h3 {
+                    color: var(--secondary-color);
+                    margin-bottom: 15px;
+                }
+                
+                .info-card p {
+                    color: var(--gray-color);
+                    margin-bottom: 8px;
+                    font-size: 0.95rem;
+                }
+                
+                .faq-section {
+                    max-width: 800px;
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+                
+                .faq-container {
+                    margin-top: 30px;
+                }
+                
+                .faq-item {
+                    margin-bottom: 15px;
+                    border: 1px solid #dee2e6;
+                    border-radius: var(--border-radius);
+                    overflow: hidden;
+                }
+                
+                .faq-question {
+                    width: 100%;
+                    padding: 20px;
+                    background-color: white;
+                    border: none;
+                    text-align: left;
+                    font-weight: 500;
+                    color: var(--secondary-color);
+                    cursor: pointer;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    transition: var(--transition);
+                }
+                
+                .faq-question:hover {
+                    background-color: #f8f9fa;
+                }
+                
+                .faq-question i {
+                    transition: transform 0.3s ease;
+                }
+                
+                .faq-question.active i {
+                    transform: rotate(180deg);
+                }
+                
+                .faq-answer {
+                    padding: 0 20px;
+                    max-height: 0;
+                    overflow: hidden;
+                    transition: max-height 0.3s ease, padding 0.3s ease;
+                }
+                
+                .faq-answer.active {
+                    padding: 20px;
+                    max-height: 500px;
+                }
+                
+                .faq-answer p {
+                    color: var(--gray-color);
+                    margin: 0;
+                }
+                
+                @media (max-width: 768px) {
+                    .form-steps {
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 20px;
+                    }
+                    
+                    .step {
+                        flex-direction: row;
+                        margin: 0;
+                    }
+                    
+                    .step-number {
+                        margin-right: 15px;
+                        margin-bottom: 0;
+                    }
+                    
+                    .review-label {
+                        width: 120px;
+                    }
+                    
+                    .confirmation-details strong {
+                        width: 120px;
+                    }
+                    
+                    .confirmation-actions {
+                        flex-direction: column;
+                    }
+                }
+                
+                @media (max-width: 576px) {
+                    .size-option span {
+                        width: 40px;
+                        height: 40px;
+                        line-height: 36px;
+                    }
+                    
+                    .review-row {
+                        flex-direction: column;
+                    }
+                    
+                    .review-label {
+                        width: 100%;
+                        margin-bottom: 5px;
+                    }
+                    
+                    .confirmation-details p {
+                        flex-direction: column;
+                    }
+                    
+                    .confirmation-details strong {
+                        width: 100%;
+                        margin-bottom: 5px;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Multi-step form functionality
+            const steps = document.querySelectorAll('.step');
+            const formSteps = document.querySelectorAll('.form-step');
+            const nextButtons = document.querySelectorAll('.next-step');
+            const prevButtons = document.querySelectorAll('.prev-step');
+            
+            // Update review section
+            function updateReview() {
+                document.getElementById('reviewName').textContent = document.getElementById('volunteerName').value || 'Not provided';
+                document.getElementById('reviewAgeGender').textContent = 
+                    `${document.getElementById('volunteerAge').value || 'Not provided'} / ${document.getElementById('volunteerGender').value || 'Not provided'}`;
+                document.getElementById('reviewPhone').textContent = document.getElementById('volunteerPhone').value || 'Not provided';
+                document.getElementById('reviewEmail').textContent = document.getElementById('volunteerEmail').value || 'Not provided';
+                document.getElementById('reviewAddress').textContent = document.getElementById('volunteerAddress').value || 'Not provided';
+                document.getElementById('reviewOccupation').textContent = document.getElementById('volunteerOccupation').value || 'Not provided';
+                document.getElementById('reviewEducation').textContent = document.getElementById('volunteerEducation').value || 'Not provided';
+                document.getElementById('reviewSkills').textContent = document.getElementById('volunteerSkills').value || 'Not provided';
+                document.getElementById('reviewArea').textContent = document.getElementById('preferredArea').value || 'Not provided';
+                document.getElementById('reviewAvailability').textContent = document.getElementById('volunteerAvailability').value || 'Not provided';
+                
+                // Get selected T-shirt size
+                const tshirtSize = document.querySelector('input[name="tshirtSize"]:checked');
+                document.getElementById('reviewTshirtSize').textContent = tshirtSize ? tshirtSize.value : 'Not selected';
+            }
+            
+            // Next button click handler
+            nextButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const currentStep = this.closest('.form-step');
+                    const nextStepId = this.getAttribute('data-next');
+                    
+                    // Validate current step
+                    let isValid = true;
+                    const requiredFields = currentStep.querySelectorAll('[required]');
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            isValid = false;
+                            field.classList.add('error');
+                            
+                            // Add error message if not already present
+                            if (!field.nextElementSibling || !field.nextElementSibling.classList.contains('error-message')) {
+                                const errorMsg = document.createElement('div');
+                                errorMsg.className = 'error-message';
+                                errorMsg.textContent = 'This field is required';
+                                field.parentNode.appendChild(errorMsg);
+                            }
+                        } else {
+                            field.classList.remove('error');
+                            
+                            // Remove error message if present
+                            const errorMsg = field.parentNode.querySelector('.error-message');
+                            if (errorMsg) {
+                                errorMsg.remove();
+                            }
+                        }
+                    });
+                    
+                    if (!isValid) {
+                        showAlert('Please fill in all required fields', 'danger');
+                        return;
+                    }
+                    
+                    // Update steps
+                    const currentStepIndex = Array.from(formSteps).indexOf(currentStep);
+                    steps[currentStepIndex].classList.remove('active');
+                    steps[currentStepIndex + 1].classList.add('active');
+                    
+                    // Hide current step, show next step
+                    currentStep.classList.remove('active');
+                    document.getElementById(nextStepId).classList.add('active');
+                    
+                    // Update review if going to step 4
+                    if (nextStepId === 'step4') {
+                        updateReview();
+                    }
+                    
+                    // Scroll to top of form
+                    document.querySelector('.form-container').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                });
+            });
+            
+            // Previous button click handler
+            prevButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const currentStep = this.closest('.form-step');
+                    const prevStepId = this.getAttribute('data-prev');
+                    
+                    // Update steps
+                    const currentStepIndex = Array.from(formSteps).indexOf(currentStep);
+                    steps[currentStepIndex].classList.remove('active');
+                    steps[currentStepIndex - 1].classList.add('active');
+                    
+                    // Hide current step, show previous step
+                    currentStep.classList.remove('active');
+                    document.getElementById(prevStepId).classList.add('active');
+                    
+                    // Scroll to top of form
+                    document.querySelector('.form-container').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                });
+            });
+            
+            // FAQ functionality
+            const faqQuestions = document.querySelectorAll('.faq-question');
+            
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', function() {
+                    const answer = this.nextElementSibling;
+                    const isActive = this.classList.contains('active');
+                    
+                    // Close all other FAQs
+                    faqQuestions.forEach(q => {
+                        q.classList.remove('active');
+                        q.nextElementSibling.classList.remove('active');
+                    });
+                    
+                    // Toggle current FAQ
+                    if (!isActive) {
+                        this.classList.add('active');
+                        answer.classList.add('active');
+                    }
+                });
+            });
+            
+            // Print confirmation button
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.id === 'printConfirmationBtn') {
+                    window.print();
+                }
+                
+                if (e.target && e.target.id === 'newRegistrationBtn') {
+                    // Reset form and show step 1
+                    document.getElementById('volunteerRegistrationForm').reset();
+                    document.getElementById('volunteerConfirmationSection').style.display = 'none';
+                    
+                    // Reset steps
+                    steps.forEach(step => step.classList.remove('active'));
+                    steps[0].classList.add('active');
+                    
+                    formSteps.forEach(step => step.classList.remove('active'));
+                    document.getElementById('step1').classList.add('active');
+                    
+                    // Scroll to top
+                    document.querySelector('.form-container').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

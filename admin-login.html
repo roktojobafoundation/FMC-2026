@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Roktojoba Foundation</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/admin.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="admin-login-page">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-container">
+                <a href="index.html" class="logo">
+                    <img src="assets/logo.png" alt="Roktojoba Foundation Logo">
+                    <span>Roktojoba Foundation</span>
+                </a>
+
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <ul class="nav-menu">
+                    <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="patient-registration.html"><i class="fas fa-user-plus"></i> Patient Registration</a>
+                    </li>
+                    <li><a href="volunteer-registration.html"><i class="fas fa-hands-helping"></i> Volunteer
+                            Registration</a></li>
+                    <li><a href="admin-login.html" class="active"><i class="fas fa-user-shield"></i> Admin Portal</a>
+                    </li>
+                    <li><a href="doctor-portal.html"><i class="fas fa-user-md"></i> Doctor Portal</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <div class="container">
+            <div class="login-wrapper animate-fade-in">
+                <div class="login-card">
+                    <div class="login-header">
+                        <div class="login-logo">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h1>Admin Portal</h1>
+                        <p>Login to manage the medical camp</p>
+                    </div>
+
+                    <!-- Alert Container -->
+                    <div id="alertContainer"></div>
+
+                    <form id="adminLoginForm">
+                        <div class="form-group">
+                            <label for="adminEmail" class="form-label">Email Address</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="adminEmail" class="form-control" placeholder="admin email"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="adminPassword" class="form-label">Password</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="adminPassword" class="form-control"
+                                    placeholder="Enter your password" required>
+                                <button type="button" class="password-toggle" id="passwordToggle">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </button>
+                        </div>
+
+                        <div class="login-footer">
+                            <p>For authorized personnel only</p>
+                            <p class="login-note">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Contact system administrator if you forgot your credentials
+                            </p>
+                        </div>
+                    </form>
+
+                    <div class="login-features">
+                        <h3>Admin Portal Features:</h3>
+                        <ul>
+                            <li><i class="fas fa-chart-bar"></i> Real-time Dashboard</li>
+                            <li><i class="fas fa-users"></i> Patient Management</li>
+                            <li><i class="fas fa-user-md"></i> Doctor Management</li>
+                            <li><i class="fas fa-hands-helping"></i> Volunteer Management</li>
+                            <li><i class="fas fa-file-pdf"></i> Report Generation</li>
+                            <li><i class="fas fa-cogs"></i> System Configuration</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="login-info">
+                    <h2>Free Medical Camp</h2>
+                    <h3>December 16, 2025</h3>
+
+                    <div class="info-stats">
+                        <div class="info-stat">
+                            <i class="fas fa-calendar-day"></i>
+                            <div>
+                                <h4>Camp Day</h4>
+                                <p>December 16, 2025</p>
+                            </div>
+                        </div>
+
+                        <div class="info-stat">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h4>Time</h4>
+                                <p>8:00 AM - 5:00 PM</p>
+                            </div>
+                        </div>
+
+                        <div class="info-stat">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <h4>Location</h4>
+                                <p>123 Medical Street, Dhaka</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="security-notice">
+                        <h4><i class="fas fa-shield-alt"></i> Security Notice</h4>
+                        <p>This portal contains sensitive medical data. Ensure you:</p>
+                        <ul>
+                            <li>Log out after each session</li>
+                            <li>Use strong passwords</li>
+                            <li>Don't share credentials</li>
+                            <li>Report suspicious activities</li>
+                        </ul>
+                    </div>
+
+                    <div class="emergency-contact">
+                        <h4><i class="fas fa-phone-alt"></i> Emergency Contact</h4>
+                        <p>System Administrator: +880 1234 567890</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">Roktojoba Foundation</h3>
+                    <p>Providing free medical services to underprivileged communities since 2010.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="patient-registration.html">Patient Registration</a></li>
+                        <li><a href="volunteer-registration.html">Volunteer Registration</a></li>
+                        <li><a href="admin-login.html">Admin Portal</a></li>
+                        <li><a href="doctor-portal.html">Doctor Portal</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3 class="footer-title">Contact Information</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Medical Street, Dhaka, Bangladesh</p>
+                    <p><i class="fas fa-phone"></i> +880 1234 567890</p>
+                    <p><i class="fas fa-envelope"></i> info@roktojobafoundation.org</p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 Roktojoba Foundation. All rights reserved.</p>
+                <p>Free Medical Camp - December 16, 2025</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Files -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth-manager.js"></script> <!-- নতুন ফাইল -->
+    <script src="js/main-fixed.js"></script>
+    <script src="js/admin.js"></script>
+
+    <!-- admin-login.html এর script tag এর মধ্যে নিচের কোড যোগ করুন -->
+    <script>
+        // Firebase Admin User Creation Function
+        async function createAdminUsers() {
+            // Check if we're in development environment
+            const isLocal = window.location.href.includes('localhost') ||
+                window.location.href.includes('127.0.0.1');
+
+            if (!isLocal) return; // Only run in development
+
+            try {
+                console.log('Creating admin users...');
+
+                // List of admin users to create
+                const adminUsers = [
+                    {
+                        email: 'admintasrik@rjfmedical.com',
+                        password: 'Admin@123',
+                        displayName: 'Tasrik Hossain "Admin & Founder"'
+                    },
+                    {
+                        email: 'admin@rjfmedical.com',
+                        password: 'Admin@123',
+                        displayName: 'FMC "Admin"'
+                    }
+                ];
+
+                // Try to create each admin user
+                for (const admin of adminUsers) {
+                    try {
+                        // Check if user already exists
+                        const signInMethods = await auth.fetchSignInMethodsForEmail(admin.email);
+
+                        if (signInMethods.length === 0) {
+                            // Create new user
+                            const userCredential = await auth.createUserWithEmailAndPassword(
+                                admin.email,
+                                admin.password
+                            );
+
+                            // Update display name
+                            await userCredential.user.updateProfile({
+                                displayName: admin.displayName
+                            });
+
+                            console.log(`Created admin user: ${admin.email}`);
+
+                            // Optionally sign out after creation
+                            await auth.signOut();
+                        } else {
+                            console.log(`Admin user already exists: ${admin.email}`);
+                        }
+                    } catch (error) {
+                        console.error(`Error creating user ${admin.email}:`, error.message);
+                    }
+                }
+
+                console.log('Admin user creation completed');
+
+            } catch (error) {
+                console.error('Error in createAdminUsers:', error);
+            }
+        }
+
+        // Add this function to automatically create users on page load (development only)
+        document.addEventListener('DOMContentLoaded', function () {
+            // Only run on login page
+            if (window.location.pathname.includes('admin-login.html')) {
+                // Create admin users on page load
+                createAdminUsers();
+
+                // Auto-fill credentials for testing
+                const isLocal = window.location.href.includes('localhost') ||
+                    window.location.href.includes('127.0.0.1');
+
+                if (isLocal) {
+                    // Auto-fill first admin credentials
+                    setTimeout(() => {
+                        const emailField = document.getElementById('adminEmail');
+                        const passwordField = document.getElementById('adminPassword');
+
+                        if (emailField && passwordField) {
+                            emailField.value = 'admintasrik@rjfmedical.com';
+                            passwordField.value = 'Admin@123';
+                        }
+                    }, 1000);
+                }
+            }
+        });
+
+        // Also modify the existing admin login to handle these users
+        // This should be added to your admin.js file or included here
+        function enhancedAdminLogin() {
+            const loginForm = document.getElementById('adminLoginForm');
+
+            if (!loginForm) return;
+
+            loginForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const email = document.getElementById('adminEmail').value.trim();
+                const password = document.getElementById('adminPassword').value;
+
+                console.log('Login attempt for:', email);
+
+                if (!email || !password) {
+                    showAlert('Please enter both email and password', 'danger');
+                    return;
+                }
+
+                // Submit button loading state
+                const submitBtn = loginForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+                submitBtn.disabled = true;
+
+                try {
+                    // Firebase authentication
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    const user = userCredential.user;
+
+                    console.log('Firebase login successful:', user.email);
+
+                    // Get the user's ID token
+                    const idToken = await user.getIdToken();
+
+                    // Check if user is admin (custom domain check)
+                    const adminDomains = ['@rjfmedical.com', '@roktojoba.org'];
+                    const isAdminDomain = adminDomains.some(domain => email.includes(domain));
+
+                    if (isAdminDomain) {
+                        // Store user info in localStorage
+                        localStorage.setItem('adminAuth', JSON.stringify({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName || user.email.split('@')[0],
+                            isAdmin: true,
+                            token: idToken,
+                            timestamp: new Date().getTime(),
+                            firebaseAuth: true
+                        }));
+
+                        // Also store in sessionStorage for immediate access
+                        sessionStorage.setItem('currentAdmin', JSON.stringify({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName,
+                            loggedIn: true,
+                            token: idToken
+                        }));
+
+                        // Check if admin exists in Firestore, if not create one
+                        try {
+                            const adminDoc = await db.collection('admins').doc(user.uid).get();
+
+                            if (!adminDoc.exists) {
+                                console.log('Creating admin record in Firestore');
+                                await db.collection('admins').doc(user.uid).set({
+                                    uid: user.uid,
+                                    email: user.email,
+                                    displayName: user.displayName || user.email.split('@')[0],
+                                    role: 'admin',
+                                    permissions: ['all'],
+                                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                            } else {
+                                // Update last login time
+                                await db.collection('admins').doc(user.uid).update({
+                                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                            }
+                        } catch (firestoreError) {
+                            console.warn('Firestore admin check error:', firestoreError);
+                            // Continue even if Firestore fails
+                        }
+
+                        showAlert('Login successful! Redirecting to dashboard...', 'success');
+
+                        // Force token refresh
+                        await user.getIdToken(true);
+
+                        // Wait a bit then redirect
+                        setTimeout(() => {
+                            window.location.href = 'admin-dashboard.html';
+                        }, 1000);
+
+                    } else {
+                        // Not an admin email
+                        await auth.signOut();
+                        localStorage.removeItem('adminAuth');
+                        sessionStorage.removeItem('currentAdmin');
+
+                        showAlert('Access denied. This email is not authorized for admin access.', 'danger');
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+                    }
+
+                } catch (error) {
+                    console.error('Firebase login error:', error);
+
+                    // Clear any existing auth data
+                    localStorage.removeItem('adminAuth');
+                    sessionStorage.removeItem('currentAdmin');
+
+                    let errorMessage = 'Login failed. ';
+                    switch (error.code) {
+                        case 'auth/invalid-email':
+                            errorMessage += 'Invalid email address format.';
+                            break;
+                        case 'auth/user-disabled':
+                            errorMessage += 'This account has been disabled.';
+                            break;
+                        case 'auth/user-not-found':
+                            errorMessage += 'No account found with this email.';
+                            break;
+                        case 'auth/wrong-password':
+                            errorMessage += 'Incorrect password.';
+                            break;
+                        case 'auth/invalid-login-credentials':
+                            errorMessage += 'Invalid email or password.';
+                            break;
+                        case 'auth/network-request-failed':
+                            errorMessage += 'Network error. Please check your internet connection.';
+                            break;
+                        case 'auth/too-many-requests':
+                            errorMessage += 'Too many login attempts. Please try again later.';
+                            break;
+                        default:
+                            errorMessage += error.message || 'An unknown error occurred.';
+                    }
+
+                    showAlert(errorMessage, 'danger');
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                }
+            });
+        }
+
+        // Call enhanced login function
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof auth !== 'undefined') {
+                enhancedAdminLogin();
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Firebase auth state check
+            if (typeof auth !== 'undefined') {
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        // User is already logged in, redirect to dashboard
+                        console.log('User already logged in, redirecting...');
+                        showAlert('You are already logged in. Redirecting to dashboard...', 'info');
+                        setTimeout(() => {
+                            window.location.href = 'admin-dashboard.html';
+                        }, 1500);
+                    }
+                });
+            }
+
+            // Initialize admin login
+            if (typeof window.adminUtils !== 'undefined') {
+                window.adminUtils.initAdminLogin();
+            } else if (typeof initAdminLogin === 'function') {
+                initAdminLogin();
+            }
+
+            // Password toggle functionality
+            const passwordToggle = document.getElementById('passwordToggle');
+            const passwordInput = document.getElementById('adminPassword');
+
+            if (passwordToggle && passwordInput) {
+                passwordToggle.addEventListener('click', function () {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    this.innerHTML = type === 'password' ?
+                        '<i class="fas fa-eye"></i>' :
+                        '<i class="fas fa-eye-slash"></i>';
+                });
+            }
+
+            // Auto-fill demo credentials for testing (remove in production)
+            if (window.location.href.includes('localhost') || window.location.href.includes('127.0.0.1')) {
+                document.getElementById('adminEmail').value = 'admin@rjfmedical.com';
+                document.getElementById('adminPassword').value = 'Admin@123';
+            }
+            // Add specific styles for login page
+            const style = document.createElement('style');
+            style.textContent = `
+                .admin-login-page {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                }
+                
+                .admin-login-page .navbar {
+                    background-color: rgba(255, 255, 255, 0.95);
+                }
+                
+                .admin-login-page .footer {
+                    background-color: rgba(29, 53, 87, 0.9);
+                    margin-top: 0;
+                }
+                
+                .login-container {
+                    padding: 60px 0;
+                    min-height: calc(100vh - 200px);
+                    display: flex;
+                    align-items: center;
+                }
+                
+                .login-wrapper {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 40px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                
+                .login-card {
+                    background: white;
+                    border-radius: var(--border-radius);
+                    padding: 40px;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                }
+                
+                .login-header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+                
+                .login-logo {
+                    width: 80px;
+                    height: 80px;
+                    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 20px;
+                    color: white;
+                    font-size: 2rem;
+                }
+                
+                .login-header h1 {
+                    color: var(--secondary-color);
+                    margin-bottom: 10px;
+                }
+                
+                .login-header p {
+                    color: var(--gray-color);
+                }
+                
+                .input-with-icon {
+                    position: relative;
+                }
+                
+                .input-with-icon i {
+                    position: absolute;
+                    left: 15px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: var(--gray-color);
+                }
+                
+                .input-with-icon .form-control {
+                    padding-left: 45px;
+                    padding-right: 45px;
+                }
+                
+                .password-toggle {
+                    position: absolute;
+                    right: 15px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: none;
+                    border: none;
+                    color: var(--gray-color);
+                    cursor: pointer;
+                }
+                
+                .login-footer {
+                    margin-top: 20px;
+                    text-align: center;
+                    color: var(--gray-color);
+                    font-size: 0.9rem;
+                }
+                
+                .login-note {
+                    background-color: rgba(233, 196, 106, 0.1);
+                    padding: 10px;
+                    border-radius: var(--border-radius);
+                    margin-top: 10px;
+                    font-size: 0.85rem;
+                }
+                
+                .login-note i {
+                    color: var(--warning-color);
+                    margin-right: 5px;
+                }
+                
+                .login-features {
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid #eee;
+                }
+                
+                .login-features h3 {
+                    color: var(--secondary-color);
+                    margin-bottom: 15px;
+                    font-size: 1.2rem;
+                }
+                
+                .login-features ul {
+                    list-style: none;
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 10px;
+                }
+                
+                .login-features li {
+                    display: flex;
+                    align-items: center;
+                    font-size: 0.9rem;
+                    color: var(--dark-color);
+                }
+                
+                .login-features li i {
+                    color: var(--primary-color);
+                    margin-right: 8px;
+                    font-size: 0.8rem;
+                }
+                
+                .login-info {
+                    color: white;
+                }
+                
+                .login-info h2 {
+                    font-size: 2.5rem;
+                    margin-bottom: 10px;
+                }
+                
+                .login-info h3 {
+                    font-size: 1.8rem;
+                    color: rgba(255, 255, 255, 0.9);
+                    margin-bottom: 30px;
+                }
+                
+                .info-stats {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: var(--border-radius);
+                    padding: 25px;
+                    margin-bottom: 30px;
+                    backdrop-filter: blur(10px);
+                }
+                
+                .info-stat {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
+                
+                .info-stat:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .info-stat i {
+                    font-size: 2rem;
+                    margin-right: 15px;
+                    color: rgba(255, 255, 255, 0.8);
+                }
+                
+                .info-stat h4 {
+                    color: white;
+                    margin-bottom: 5px;
+                    font-size: 1.1rem;
+                }
+                
+                .info-stat p {
+                    color: rgba(255, 255, 255, 0.8);
+                    font-size: 0.95rem;
+                }
+                
+                .security-notice {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: var(--border-radius);
+                    padding: 25px;
+                    margin-bottom: 30px;
+                    backdrop-filter: blur(10px);
+                }
+                
+                .security-notice h4 {
+                    color: white;
+                    margin-bottom: 15px;
+                    display: flex;
+                    align-items: center;
+                }
+                
+                .security-notice h4 i {
+                    margin-right: 10px;
+                }
+                
+                .security-notice p {
+                    color: rgba(255, 255, 255, 0.9);
+                    margin-bottom: 10px;
+                }
+                
+                .security-notice ul {
+                    list-style: none;
+                    padding-left: 0;
+                }
+                
+                .security-notice li {
+                    color: rgba(255, 255, 255, 0.8);
+                    margin-bottom: 5px;
+                    padding-left: 20px;
+                    position: relative;
+                }
+                
+                .security-notice li:before {
+                    content: "•";
+                    position: absolute;
+                    left: 0;
+                    color: var(--primary-color);
+                }
+                
+                .emergency-contact {
+                    background: rgba(230, 57, 70, 0.2);
+                    border-radius: var(--border-radius);
+                    padding: 20px;
+                    border-left: 4px solid var(--primary-color);
+                }
+                
+                .emergency-contact h4 {
+                    color: white;
+                    margin-bottom: 10px;
+                    display: flex;
+                    align-items: center;
+                }
+                
+                .emergency-contact h4 i {
+                    margin-right: 10px;
+                }
+                
+                .emergency-contact p {
+                    color: rgba(255, 255, 255, 0.9);
+                }
+                
+                @media (max-width: 992px) {
+                    .login-wrapper {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .login-info {
+                        order: -1;
+                    }
+                }
+                
+                @media (max-width: 576px) {
+                    .login-card {
+                        padding: 30px 20px;
+                    }
+                    
+                    .login-features ul {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .login-info h2 {
+                        font-size: 2rem;
+                    }
+                    
+                    .login-info h3 {
+                        font-size: 1.5rem;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+
+    </script>
+    <script>
+        // Auto-fill credentials for testing with correct email
+        document.addEventListener('DOMContentLoaded', function () {
+            // Only run on login page
+            if (window.location.pathname.includes('admin-login.html')) {
+                // Auto-fill credentials for testing
+                const isLocal = window.location.href.includes('localhost') ||
+                    window.location.href.includes('127.0.0.1');
+
+                if (isLocal) {
+                    // Auto-fill first admin credentials
+                    setTimeout(() => {
+                        const emailField = document.getElementById('adminEmail');
+                        const passwordField = document.getElementById('adminPassword');
+
+                        if (emailField && passwordField) {
+                            // Set to admintasrik@rjfmedical.com by default for testing
+                            emailField.value = 'admintasrik@rjfmedical.com';
+                            passwordField.value = 'Admin@123';
+                        }
+                    }, 1000);
+                }
+            }
+        });
+    </script>
+
+</body>
+
+</html>
