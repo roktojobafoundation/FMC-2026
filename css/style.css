@@ -535,3 +535,190 @@ h1, h2, h3, h4, h5, h6 {
     margin-right: 10px;
     font-size: 1.2rem;
 }
+
+/* ============================================
+   BARCODE SCANNER STYLES
+   ============================================ */
+
+/* Scan Barcode Button */
+.scanner-btn {
+    background: linear-gradient(135deg, var(--accent-color), #d62828);
+    color: var(--white);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(230, 57, 70, 0.25);
+}
+
+.scanner-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(230, 57, 70, 0.4);
+}
+
+.scanner-btn i {
+    font-size: 1.1rem;
+}
+
+/* Scanner Modal Overlay */
+.scanner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.scanner-overlay .modal-content {
+    width: 100%;
+    max-width: 650px;
+    max-height: 92vh;
+    overflow-y: auto;
+}
+
+.scanner-overlay .modal-header {
+    background: linear-gradient(135deg, var(--accent-color), var(--secondary-color)) !important;
+}
+
+/* Scanner Close Button (different class to avoid conflicts) */
+.scanner-close {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 26px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.scanner-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Barcode Reader Container */
+#barcodeReader {
+    width: 100%;
+    min-height: 260px;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+#barcodeReader video {
+    border-radius: 8px;
+    width: 100% !important;
+}
+
+#barcodeReader img {
+    max-width: 100%;
+}
+
+/* Scanner Status Message */
+.scanner-status {
+    text-align: center;
+    padding: 12px 15px;
+    background: #f0f4f8;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 4px solid var(--primary-color);
+}
+
+.scanner-status p {
+    margin: 0;
+    color: var(--dark-text);
+    font-size: 0.95rem;
+}
+
+/* Scanner Controls */
+.scanner-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+/* Manual Input Section */
+.manual-input-section {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.manual-input-section > p {
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: var(--dark-text);
+    font-size: 0.9rem;
+}
+
+.manual-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.manual-input-group .form-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: var(--transition);
+}
+
+.manual-input-group .form-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+}
+
+/* Responsive Scanner */
+@media (max-width: 768px) {
+    .scanner-btn span {
+        display: none;
+    }
+
+    .scanner-btn {
+        padding: 10px 12px;
+    }
+
+    .manual-input-group {
+        flex-direction: column;
+    }
+
+    .manual-input-group .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
