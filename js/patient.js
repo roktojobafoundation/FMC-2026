@@ -498,11 +498,11 @@ function initPatientRegistration() {
         // ----- Validate BP -----
         const bpSystolic  = parseInt(document.getElementById('bpSystolic').value);
         const bpDiastolic = parseInt(document.getElementById('bpDiastolic').value);
-        if (bpSystolic < 00 || bpSystolic > 00) {
+        if (bpSystolic < 00 || bpSystolic > 300) {
             showAlert('অনুগ্রহ করে একটি বৈধ সিস্টোলিক BP দিন (৫০-৩০০)', 'danger');
             return;
         }
-        if (bpDiastolic < 00 || bpDiastolic > 00) {
+        if (bpDiastolic < 00 || bpDiastolic > 200) {
             showAlert('অনুগ্রহ করে একটি বৈধ ডায়াস্টোলিক BP দিন (৩০-২০০)', 'danger');
             return;
         }
