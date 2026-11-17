@@ -1646,20 +1646,10 @@ async function startBarcodeCamera() {
             statusEl.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Starting camera...</p>';
         }
 
-        // Restrict to actual barcode formats (much faster than trying all formats)
         const formatsToSupport = [
             Html5QrcodeSupportedFormats.CODE_128,
             Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.CODE_93,
-            Html5QrcodeSupportedFormats.CODABAR,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-            Html5QrcodeSupportedFormats.ITF,
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.DATA_MATRIX,
-            Html5QrcodeSupportedFormats.PDF_417
+            Html5QrcodeSupportedFormats.QR_CODE
         ];
 
         barcodeScanner = new Html5Qrcode("barcodeReader", {
@@ -1732,12 +1722,32 @@ async function stopBarcodeCamera() {
     if (stopBtn) stopBtn.style.display = 'none';
 }
 
-// On barcode scanned — with duplicate-scan debounce
+// Double-confirm state (একই মান পরপর ২ বার না পড়লে গ্রহণ করা হবে না)
+let pendingScanValue = '';
+let pendingScanCount = 0;
+let pendingScanTime = 0;
+
 async function onBarcodeScanned(decodedText) {
     const now = Date.now();
     const cleanValue = (decodedText || '').trim();
+    if (!cleanValue) return;
 
-    // Prevent duplicate scans within 1.5s (avoids re-trigger on same frame)
+    // Confirm: same value must be read twice within 1.5s
+    if (cleanValue === pendingScanValue && (now - pendingScanTime) < 1500) {
+        pendingScanCount++;
+    } else {
+        pendingScanValue = cleanValue;
+        pendingScanCount = 1;
+    }
+    pendingScanTime = now;
+
+    if (pendingScanCount < 2) return;
+
+    // Confirmed — reset
+    pendingScanValue = '';
+    pendingScanCount = 0;
+
+    // Prevent duplicate scans within 1.5s
     if (cleanValue === lastScannedValue && (now - lastScannedTime) < 1500) {
         return;
     }
@@ -1754,7 +1764,7 @@ async function onBarcodeScanned(decodedText) {
     if (navigator.vibrate) navigator.vibrate(100);
 
     await stopBarcodeCamera();
-    await processBarcodeValue(cleanValue);
+    await processBarcodeValue(cleanValue, false);   // scan → exact match only
 }
 
 // On scan error (silent)
@@ -1782,7 +1792,7 @@ async function handleManualBarcodeSearch() {
 }
 
 // Process barcode value — fast-path DB lookup
-async function processBarcodeValue(barcodeValue) {
+async function processBarcodeValue(barcodeValue, allowPartial = true) {
     const statusEl = document.getElementById('scannerStatus');
     const cleanValue = (barcodeValue || '').trim();
 
@@ -1847,7 +1857,7 @@ async function processBarcodeValue(barcodeValue) {
                 }
             });
 
-            if (!foundDoc) {
+            if (!foundDoc && allowPartial) {
                 snapshot.docs.forEach(doc => {
                     if (foundDoc) return;
                     const regId = (doc.data().registrationId || '').toLowerCase();
@@ -1913,7 +1923,7 @@ function setupUSBBarcodeListener() {
                 console.log('USB Barcode scanned:', barcode);
 
                 openBarcodeScannerModal();
-                setTimeout(() => processBarcodeValue(barcode), 200);
+                setTimeout(() => processBarcodeValue(barcode, false), 200);
             }
             return;
         }
