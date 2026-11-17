@@ -742,7 +742,7 @@ async function initPatientManagement() {
     initPatientActions();
 }
 
-// Load Patients Table
+// Load Patients Table - Show ALL registered patients (no limit)
 async function loadPatientsTable() {
     const tableBody = document.getElementById('patientsTableBody');
     if (!tableBody) return;
@@ -750,8 +750,7 @@ async function loadPatientsTable() {
     try {
         const snapshot = await db.collection('patients')
             .orderBy('registrationDate', 'desc')
-            .limit(100)
-            .get();
+            .get();   // ← .limit(100) সরানো হয়েছে
 
         tableBody.innerHTML = '';
 
@@ -799,7 +798,6 @@ async function loadPatientsTable() {
             tableBody.appendChild(row);
         });
 
-        // Add event listeners to action buttons
         addPatientActionListeners();
 
     } catch (error) {
@@ -827,7 +825,7 @@ function initPatientSearch() {
     });
 }
 
-// Search Patients
+// Search Patients - searches across ALL registered patients (client-side substring match)
 async function searchPatients(searchTerm) {
     if (!searchTerm.trim()) {
         await loadPatientsTable();
@@ -838,29 +836,27 @@ async function searchPatients(searchTerm) {
     if (!tableBody) return;
 
     try {
-        // Search by registration ID or name
-        const [idResults, nameResults] = await Promise.all([
-            db.collection('patients')
-                .where('registrationId', '>=', searchTerm)
-                .where('registrationId', '<=', searchTerm + '\uf8ff')
-                .limit(20)
-                .get(),
+        // সব রোগী ফেচ করুন, তারপর client-side ফিল্টার করুন
+        const snapshot = await db.collection('patients')
+            .orderBy('registrationDate', 'desc')
+            .get();
 
-            db.collection('patients')
-                .where('fullName', '>=', searchTerm)
-                .where('fullName', '<=', searchTerm + '\uf8ff')
-                .limit(20)
-                .get()
-        ]);
+        const term = searchTerm.toLowerCase().trim();
+        const cleanPhoneTerm = term.replace(/\D/g, '');
 
-        // Combine and deduplicate results
-        const resultsMap = new Map();
+        const results = [];
+        snapshot.forEach(doc => {
+            const patient = doc.data();
+            const matchesId = (patient.registrationId || '').toLowerCase().includes(term);
+            const matchesName = (patient.fullName || '').toLowerCase().includes(term);
+            const matchesPhone = cleanPhoneTerm
+                ? (patient.phone || '').replace(/\D/g, '').includes(cleanPhoneTerm)
+                : false;
 
-        [...idResults.docs, ...nameResults.docs].forEach(doc => {
-            resultsMap.set(doc.id, doc);
+            if (matchesId || matchesName || matchesPhone) {
+                results.push(doc);
+            }
         });
-
-        const results = Array.from(resultsMap.values());
 
         tableBody.innerHTML = '';
 
@@ -908,7 +904,6 @@ async function searchPatients(searchTerm) {
             tableBody.appendChild(row);
         });
 
-        // Add event listeners to action buttons
         addPatientActionListeners();
 
     } catch (error) {
@@ -979,8 +974,8 @@ async function viewPatientDetails(patientId) {
                         <p><strong>Allergy:</strong> ${patient.allergies || 'None reported'}</p>
                         <p><strong>Previous Medical History:</strong> ${patient.medicalHistory || 'None reported'}</p>
                         <p><strong>Previous Medicine:</strong> ${patient.previousMedications || 'None reported'}</p>
-                        <p><strong>Patient BP:</strong> ${patient.bp}</p>
-                        <p><strong>Patient Weight:</strong> ${patient.weight}</p>
+                        <p><strong>Patient BP:</strong> ${patient.bp || 'None reported'} mmHg</p>
+                        <p><strong>Patient Weight:</strong> ${patient.weight || 'None reported'} KG</p>
                         <p><strong>Current Symptoms:</strong> ${patient.currentSymptoms || 'None reported'}</p>
                     </div>
                     
@@ -1424,10 +1419,10 @@ function printPatientPrescription(patient) {
         middleHtml += `<div class="cc-line"><strong>Previous Medicine:</strong> ${esc(patient.previousMedications)}</div>`;
     }
     if (patient.bp) {
-        middleHtml += `<div class="cc-line"><strong>Patient BP:</strong> ${esc(patient.bp)}</div>`;
+        middleHtml += `<div class="cc-line"><strong>Patient BP:</strong> ${esc(patient.bp)} mmHg</div>`;
     }
     if (patient.weight) {
-        middleHtml += `<div class="cc-line"><strong>Patient Weight:</strong> ${esc(patient.weight)}</div>`;
+        middleHtml += `<div class="cc-line"><strong>Patient Weight:</strong> ${esc(patient.weight)} KG</div>`;
     }
 
     printWindow.document.write(`
@@ -1616,7 +1611,7 @@ function printPatientPrescription(patient) {
                     <div class="org">
                         <h1>Roktojoba Foundation | রক্তজবা ফাউন্ডেশন</h1>
                         <div class="bn">Free Medical Camp</div>
-                        <div class="addr">Mobile: 01960506601 | Email: roktojobafoundation@gmail.com</div>
+                        <div class="addr">Mobile: +880 1960-506601 | Email: roktojobafoundation@gmail.com</div>
                     </div>
                     <div class="header-right">
                         <img class="qr-img" src="${qrUrl}" alt="QR Code">
@@ -1625,11 +1620,9 @@ function printPatientPrescription(patient) {
                 </div>
 
                 <div class="title-row">
-                    <div class="date"><strong>Print Date &amp; Time:</strong> ${esc(printDate)}</div>
+                    <div class="barcode">${barcode}</div>
                     <div class="title"> Patient Prescription</div>
-                    <div class="barcode">
-                        ${barcode}
-                    </div>
+                    <div class="date"><strong>Print Date &amp; Time:</strong> ${esc(printDate)}</div>
                 </div>
 
                 <div class="info">
@@ -1685,15 +1678,15 @@ function printPatientPrescription(patient) {
                         <div class="right">
                             <div class="label-rx">Rx</div>
                             <div class="signature-block">
-                                <div class="signature-line">Physician's signature</div>
+                                <div class="signature-line">Physician's Signature</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="rx-footer">
-                    <div class="note"><strong>Powered by</strong> FT Innovation | <strong>Our Medical Partnar</strong> Aurora Specialized Hospital Ltd.</div>
-                    <div class="printed">Roktojoba Foundation - Free Medical Camp | Designed & Developed by Tasrik Hossain</div>
+                    <div class="note">Powered by <strong>FT Innovation</strong> | Our Medical Partnar <strong>Aurora Specialized Hospital Ltd.</strong></div>
+                    <div class="printed">Roktojoba Foundation - Free Medical Camp | Software Designed & Developed by <strong>MD. Tasrik Hossain</strong></div>
                 </div>
             </div>
 
@@ -2187,7 +2180,7 @@ async function addNewVolunteer() {
     }
 }
 
-// Enhanced Patient Search Functionality
+// Enhanced Patient Search Functionality - UPDATED
 function initAdvancedPatientSearch() {
     const searchInput = document.getElementById('patientSearch');
     if (!searchInput) return;
@@ -2201,6 +2194,10 @@ function initAdvancedPatientSearch() {
             document.getElementById('patientSearch').value = '';
             document.getElementById('patientStatusFilter').value = '';
             document.getElementById('patientDoctorFilter').value = '';
+
+            const genderFilterEl = document.getElementById('patientGenderFilter');
+            if (genderFilterEl) genderFilterEl.value = '';
+
             loadPatientsTable();
         });
     }
@@ -2209,6 +2206,14 @@ function initAdvancedPatientSearch() {
     const statusFilter = document.getElementById('patientStatusFilter');
     if (statusFilter) {
         statusFilter.addEventListener('change', function () {
+            applyPatientFilters();
+        });
+    }
+
+    // Gender filter
+    const genderFilter = document.getElementById('patientGenderFilter');
+    if (genderFilter) {
+        genderFilter.addEventListener('change', function () {
             applyPatientFilters();
         });
     }
@@ -2227,34 +2232,42 @@ function initAdvancedPatientSearch() {
     });
 }
 
-// Populate Doctor Filter Dropdown
+// Populate Doctor Filter Dropdown - FIXED
 async function populateDoctorFilter() {
     const doctorFilter = document.getElementById('patientDoctorFilter');
     if (!doctorFilter) return;
+
+    // Prevent duplicate change listeners
+    if (!doctorFilter.dataset.bound) {
+        doctorFilter.addEventListener('change', function () {
+            applyPatientFilters();
+        });
+        doctorFilter.dataset.bound = '1';
+    }
 
     try {
         const snapshot = await db.collection('doctors')
             .where('isActive', '==', true)
             .get();
 
-        // Clear existing options except the first one
+        // প্রথম option (All) বাদে বাকি সব মুছে ফেলুন
         while (doctorFilter.options.length > 1) {
             doctorFilter.remove(1);
         }
 
-        if (snapshot.empty) return;
+        // "Not Assigned" option যোগ করুন
+        const notAssignedOpt = document.createElement('option');
+        notAssignedOpt.value = '__not_assigned__';
+        notAssignedOpt.textContent = 'Not Assigned';
+        doctorFilter.appendChild(notAssignedOpt);
 
         snapshot.forEach(doc => {
             const doctor = doc.data();
             const option = document.createElement('option');
-            option.value = doctor.fullName;
+            // FIX: patient.assignedDoctor-এ যেভাবে সেভ হয় ঠিক সেভাবেই value
+            option.value = `Dr. ${doctor.fullName}`;
             option.textContent = `Dr. ${esc(doctor.fullName)} (${doctor.specialization})`;
             doctorFilter.appendChild(option);
-        });
-
-        // Add change event listener
-        doctorFilter.addEventListener('change', function () {
-            applyPatientFilters();
         });
 
     } catch (error) {
@@ -2262,123 +2275,82 @@ async function populateDoctorFilter() {
     }
 }
 
-// Apply All Patient Filters
+// Apply All Patient Filters - FIXED (Doctor + Not Assigned + Gender)
 async function applyPatientFilters() {
     const searchTerm = document.getElementById('patientSearch').value.trim();
     const statusFilter = document.getElementById('patientStatusFilter').value;
     const doctorFilter = document.getElementById('patientDoctorFilter').value;
 
+    // Gender filter (যদি HTML-এ থাকে)
+    const genderFilterEl = document.getElementById('patientGenderFilter');
+    const genderFilter = genderFilterEl ? genderFilterEl.value : '';
+
     const tableBody = document.getElementById('patientsTableBody');
     if (!tableBody) return;
 
+    // কোনো ফিল্টার নেই → সব রোগী দেখান
+    if (!searchTerm && !statusFilter && !doctorFilter && !genderFilter) {
+        await loadPatientsTable();
+        return;
+    }
+
     try {
-        let query = db.collection('patients');
+        const snapshot = await db.collection('patients')
+            .orderBy('registrationDate', 'desc')
+            .get();
 
-        // Apply search filter if exists
-        if (searchTerm) {
-            // Search in multiple fields
-            const [byId, byName, byPhone] = await Promise.all([
-                db.collection('patients')
-                    .where('registrationId', '>=', searchTerm)
-                    .where('registrationId', '<=', searchTerm + '\uf8ff')
-                    .limit(50)
-                    .get(),
+        const term = searchTerm.toLowerCase().trim();
+        const cleanPhoneTerm = term.replace(/\D/g, '');
+        const filteredPatients = [];
 
-                db.collection('patients')
-                    .where('fullName', '>=', searchTerm)
-                    .where('fullName', '<=', searchTerm + '\uf8ff')
-                    .limit(50)
-                    .get(),
+        snapshot.forEach(doc => {
+            const patient = doc.data();
 
-                db.collection('patients')
-                    .where('phone', '>=', searchTerm)
-                    .where('phone', '<=', searchTerm + '\uf8ff')
-                    .limit(50)
-                    .get()
-            ]);
+            // Search filter (name / id / phone — substring match)
+            if (term) {
+                const matchesId = (patient.registrationId || '').toLowerCase().includes(term);
+                const matchesName = (patient.fullName || '').toLowerCase().includes(term);
+                const matchesPhone = cleanPhoneTerm
+                    ? (patient.phone || '').replace(/\D/g, '').includes(cleanPhoneTerm)
+                    : false;
 
-            // Combine and deduplicate results
-            const resultsMap = new Map();
-            [...byId.docs, ...byName.docs, ...byPhone.docs].forEach(doc => {
-                resultsMap.set(doc.id, doc);
-            });
+                if (!matchesId && !matchesName && !matchesPhone) return;
+            }
 
-            const filteredDocs = Array.from(resultsMap.values());
-
-            // Now apply other filters on the results
-            let filteredPatients = filteredDocs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-
-            // Apply status filter
+            // Status filter
             if (statusFilter) {
-                filteredPatients = filteredPatients.filter(patient => {
-                    const status = calculatePatientStatus(patient);
-                    return status === statusFilter;
-                });
+                const status = calculatePatientStatus(patient);
+                if (status !== statusFilter) return;
             }
 
-            // Apply doctor filter
+            // Doctor filter (FIXED + Not Assigned support)
             if (doctorFilter) {
-                filteredPatients = filteredPatients.filter(patient =>
-                    patient.assignedDoctor === doctorFilter
-                );
-            }
-
-            displayFilteredPatients(filteredPatients);
-            return;
-        }
-
-        // If no search term, apply filters directly
-        if (statusFilter || doctorFilter) {
-            // Apply status filter
-            if (statusFilter) {
-                // We need to filter based on status logic
-                // This is complex, so we'll fetch all and filter client-side
-                const snapshot = await query.orderBy('registrationDate', 'desc').limit(100).get();
-                let patients = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-
-                // Apply status filter
-                if (statusFilter) {
-                    patients = patients.filter(patient => {
-                        const status = calculatePatientStatus(patient);
-                        return status === statusFilter;
-                    });
+                if (doctorFilter === '__not_assigned__') {
+                    // assignedDoctor খালি / নেই → সেগুলো দেখাবে
+                    const hasDoctor = patient.assignedDoctor &&
+                                      patient.assignedDoctor !== '' &&
+                                      patient.assignedDoctor !== 'Not Assigned';
+                    if (hasDoctor) return;
+                } else {
+                    if (patient.assignedDoctor !== doctorFilter) return;
                 }
-
-                // Apply doctor filter
-                if (doctorFilter) {
-                    patients = patients.filter(patient =>
-                        patient.assignedDoctor === doctorFilter
-                    );
-                }
-
-                displayFilteredPatients(patients);
-                return;
             }
 
-            // Apply doctor filter only
-            if (doctorFilter) {
-                query = query.where('assignedDoctor', '==', doctorFilter);
+            // Gender filter (Male / Female / Other)
+            if (genderFilter) {
+                if ((patient.gender || '') !== genderFilter) return;
             }
-        }
 
-        // No filters, load all patients
-        if (!searchTerm && !statusFilter && !doctorFilter) {
-            await loadPatientsTable();
-            return;
-        }
+            filteredPatients.push({ id: doc.id, ...patient });
+        });
 
-        // Execute the query
-        const snapshot = await query.orderBy('registrationDate', 'desc').limit(100).get();
-        displayFilteredPatients(snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        })));
+        displayFilteredPatients(filteredPatients);
+
+        // Update count
+        const patientCount = document.getElementById('patientCount');
+        if (patientCount) {
+            patientCount.textContent = `${filteredPatients.length} patients`;
+        }
 
     } catch (error) {
         console.error('Error applying filters:', error);
