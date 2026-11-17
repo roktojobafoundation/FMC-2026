@@ -1541,47 +1541,43 @@ window.showAlert = showAlert;
 window.closeModal = closeModal;
 
 // ============================================================
-// BARCODE SCANNER FUNCTIONALITY
+// BARCODE SCANNER FUNCTIONALITY (OPTIMIZED FOR MOBILE)
 // ============================================================
 
 let barcodeScanner = null;
 let barcodeScannerRunning = false;
 let usbBarcodeBuffer = '';
 let usbBarcodeTimer = null;
+let lastScannedValue = '';
+let lastScannedTime = 0;
 
 // Initialize barcode scanner
 function initBarcodeScanner() {
-    // Scan button listener
     const scanBtn = document.getElementById('scanBarcodeBtn');
     if (scanBtn) {
         scanBtn.addEventListener('click', openBarcodeScannerModal);
     }
 
-    // Close modal
     const closeBtn = document.getElementById('closeScannerModal');
     if (closeBtn) {
         closeBtn.addEventListener('click', closeBarcodeScannerModal);
     }
 
-    // Start camera
     const startCamBtn = document.getElementById('startCameraBtn');
     if (startCamBtn) {
         startCamBtn.addEventListener('click', startBarcodeCamera);
     }
 
-    // Stop camera
     const stopCamBtn = document.getElementById('stopCameraBtn');
     if (stopCamBtn) {
         stopCamBtn.addEventListener('click', stopBarcodeCamera);
     }
 
-    // Manual search
     const manualSearchBtn = document.getElementById('manualSearchBtn');
     if (manualSearchBtn) {
         manualSearchBtn.addEventListener('click', handleManualBarcodeSearch);
     }
 
-    // Manual input - Enter key
     const manualInput = document.getElementById('manualPatientId');
     if (manualInput) {
         manualInput.addEventListener('keypress', (e) => {
@@ -1592,10 +1588,8 @@ function initBarcodeScanner() {
         });
     }
 
-    // Setup USB barcode scanner listener
     setupUSBBarcodeListener();
-
-    console.log('Barcode scanner initialized');
+    console.log('Barcode scanner initialized (mobile-optimized)');
 }
 
 // Open scanner modal
@@ -1632,7 +1626,7 @@ async function closeBarcodeScannerModal() {
     }
 }
 
-// Start camera scanning
+// Start camera scanning — OPTIMIZED FOR PHONE
 async function startBarcodeCamera() {
     const statusEl = document.getElementById('scannerStatus');
     const startBtn = document.getElementById('startCameraBtn');
@@ -1652,11 +1646,47 @@ async function startBarcodeCamera() {
             statusEl.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Starting camera...</p>';
         }
 
-        barcodeScanner = new Html5Qrcode("barcodeReader");
+        // Restrict to actual barcode formats (much faster than trying all formats)
+        const formatsToSupport = [
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.CODE_93,
+            Html5QrcodeSupportedFormats.CODABAR,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.DATA_MATRIX,
+            Html5QrcodeSupportedFormats.PDF_417
+        ];
+
+        barcodeScanner = new Html5Qrcode("barcodeReader", {
+            formatsToSupport: formatsToSupport,
+            verbose: false,
+            // 🔥 KEY: Use native BarcodeDetector API on Android Chrome = 5-10x faster
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            }
+        });
 
         const config = {
-            fps: 10,
-            qrbox: { width: 280, height: 140 }
+            fps: 30, // 🔥 up from 10 → much faster detection
+            // Wide horizontal box, ideal for 1D barcodes
+            qrbox: function (viewfinderWidth, viewfinderHeight) {
+                const width = Math.floor(viewfinderWidth * 0.85);
+                const height = Math.floor(Math.min(viewfinderHeight * 0.40, width * 0.6));
+                return { width: width, height: height };
+            },
+            aspectRatio: 1.777778, // 16:9
+            disableFlip: true,     // barcodes don't need flipped scanning
+            videoConstraints: {
+                facingMode: "environment",
+                width:  { ideal: 1280 },
+                height: { ideal: 720 },
+                frameRate: { ideal: 30, min: 15 }
+            }
         };
 
         await barcodeScanner.start(
@@ -1669,7 +1699,7 @@ async function startBarcodeCamera() {
         barcodeScannerRunning = true;
 
         if (statusEl) {
-            statusEl.innerHTML = '<p style="color:#2a9d8f;"><i class="fas fa-camera"></i> Camera active - position barcode in view</p>';
+            statusEl.innerHTML = '<p style="color:#2a9d8f;"><i class="fas fa-camera"></i> Camera active — hold steady over barcode</p>';
         }
 
         if (startBtn) startBtn.style.display = 'none';
@@ -1678,7 +1708,7 @@ async function startBarcodeCamera() {
     } catch (error) {
         console.error('Error starting camera:', error);
         if (statusEl) {
-            statusEl.innerHTML = '<p style="color:#e63946;"><i class="fas fa-exclamation-circle"></i> Camera unavailable. Use manual input or USB scanner.</p>';
+            statusEl.innerHTML = '<p style="color:#e63946;"><i class="fas fa-exclamation-circle"></i> ' + (error.message || 'Camera unavailable.') + '</p>';
         }
         barcodeScannerRunning = false;
     }
@@ -1702,24 +1732,34 @@ async function stopBarcodeCamera() {
     if (stopBtn) stopBtn.style.display = 'none';
 }
 
-// On barcode scanned successfully
+// On barcode scanned — with duplicate-scan debounce
 async function onBarcodeScanned(decodedText) {
-    const statusEl = document.getElementById('scannerStatus');
+    const now = Date.now();
+    const cleanValue = (decodedText || '').trim();
 
-    if (statusEl) {
-        statusEl.innerHTML = `<p style="color:#2a9d8f;"><i class="fas fa-check-circle"></i> Scanned: <strong>${decodedText}</strong></p>`;
+    // Prevent duplicate scans within 1.5s (avoids re-trigger on same frame)
+    if (cleanValue === lastScannedValue && (now - lastScannedTime) < 1500) {
+        return;
     }
 
-    // Stop camera to prevent multiple scans
-    await stopBarcodeCamera();
+    lastScannedValue = cleanValue;
+    lastScannedTime = now;
 
-    // Process the scanned value
-    await processBarcodeValue(decodedText);
+    const statusEl = document.getElementById('scannerStatus');
+    if (statusEl) {
+        statusEl.innerHTML = `<p style="color:#2a9d8f;"><i class="fas fa-check-circle"></i> Scanned: <strong>${cleanValue}</strong></p>`;
+    }
+
+    // Haptic feedback on mobile
+    if (navigator.vibrate) navigator.vibrate(100);
+
+    await stopBarcodeCamera();
+    await processBarcodeValue(cleanValue);
 }
 
 // On scan error (silent)
 function onBarcodeScanError(error) {
-    // Silent - scan errors are normal (no barcode in frame)
+    // Silent — normal while scanning
 }
 
 // Handle manual search
@@ -1741,7 +1781,7 @@ async function handleManualBarcodeSearch() {
     await processBarcodeValue(value);
 }
 
-// Process barcode value - search patient
+// Process barcode value — fast-path DB lookup
 async function processBarcodeValue(barcodeValue) {
     const statusEl = document.getElementById('scannerStatus');
     const cleanValue = (barcodeValue || '').trim();
@@ -1760,42 +1800,62 @@ async function processBarcodeValue(barcodeValue) {
             statusEl.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Searching patient database...</p>';
         }
 
-        // Fetch all patients for this doctor
-        const snapshot = await db.collection('patients')
-            .where('assignedDoctorId', '==', currentDoctorId)
-            .get();
-
-        if (snapshot.empty) {
-            if (statusEl) statusEl.innerHTML = '<p style="color:#e63946;"><i class="fas fa-exclamation-circle"></i> No patients assigned to you</p>';
-            showAlert('No patients found assigned to you', 'warning');
-            return;
-        }
-
-        const searchLower = cleanValue.toLowerCase();
         let foundDoc = null;
 
-        // Exact match: registrationId or document ID
-        snapshot.docs.forEach(doc => {
-            if (foundDoc) return;
-            const data = doc.data();
-            const regId = (data.registrationId || '').toLowerCase().trim();
-            const docId = doc.id.toLowerCase().trim();
-
-            if (regId === searchLower || docId === searchLower) {
-                foundDoc = doc;
+        // 1) Fastest path: direct document ID lookup
+        try {
+            const directDoc = await db.collection('patients').doc(cleanValue).get();
+            if (directDoc.exists && directDoc.data().assignedDoctorId === currentDoctorId) {
+                foundDoc = directDoc;
             }
-        });
+        } catch (e) { /* ignore, fall through */ }
 
-        // Fallback: partial match
+        // 2) Exact registrationId query
         if (!foundDoc) {
+            const regQuery = await db.collection('patients')
+                .where('registrationId', '==', cleanValue)
+                .where('assignedDoctorId', '==', currentDoctorId)
+                .limit(1)
+                .get();
+            if (!regQuery.empty) {
+                foundDoc = regQuery.docs[0];
+            }
+        }
+
+        // 3) Fallback — full scan with partial match
+        if (!foundDoc) {
+            const snapshot = await db.collection('patients')
+                .where('assignedDoctorId', '==', currentDoctorId)
+                .get();
+
+            if (snapshot.empty) {
+                if (statusEl) statusEl.innerHTML = '<p style="color:#e63946;"><i class="fas fa-exclamation-circle"></i> No patients assigned to you</p>';
+                showAlert('No patients found assigned to you', 'warning');
+                return;
+            }
+
+            const searchLower = cleanValue.toLowerCase();
+
             snapshot.docs.forEach(doc => {
                 if (foundDoc) return;
                 const data = doc.data();
-                const regId = (data.registrationId || '').toLowerCase();
-                if (regId && (regId.includes(searchLower) || searchLower.includes(regId))) {
+                const regId = (data.registrationId || '').toLowerCase().trim();
+                const docId = doc.id.toLowerCase().trim();
+
+                if (regId === searchLower || docId === searchLower) {
                     foundDoc = doc;
                 }
             });
+
+            if (!foundDoc) {
+                snapshot.docs.forEach(doc => {
+                    if (foundDoc) return;
+                    const regId = (doc.data().registrationId || '').toLowerCase();
+                    if (regId && (regId.includes(searchLower) || searchLower.includes(regId))) {
+                        foundDoc = doc;
+                    }
+                });
+            }
         }
 
         if (!foundDoc) {
@@ -1813,10 +1873,10 @@ async function processBarcodeValue(barcodeValue) {
             statusEl.innerHTML = `<p style="color:#2a9d8f;"><i class="fas fa-check-circle"></i> Found: <strong>${patientData.fullName}</strong> (${patientData.registrationId})</p>`;
         }
 
-        // Close scanner modal
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
         await closeBarcodeScannerModal();
 
-        // Show patient details
         setTimeout(() => {
             viewPatientDetails(patientId);
         }, 300);
@@ -1833,22 +1893,17 @@ async function processBarcodeValue(barcodeValue) {
 // USB barcode scanner support (keyboard-wedge devices)
 function setupUSBBarcodeListener() {
     document.addEventListener('keydown', function (e) {
-        // Skip if user is typing in an input field
         const tag = (e.target.tagName || '').toUpperCase();
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
-        // Skip if scanner modal is open (modal handles it)
         const scannerModal = document.getElementById('barcodeScannerModal');
         if (scannerModal && scannerModal.style.display === 'flex') return;
 
-        // Skip if patient details modal is open
         if (document.querySelector('.modal-overlay')) return;
 
-        // Only process when on Waiting Patients section
         const activeNav = document.querySelector('.nav-link.active, .mobile-tab.active');
         if (!activeNav || activeNav.dataset.section !== 'waiting') return;
 
-        // Handle USB scanner input
         if (e.key === 'Enter') {
             if (usbBarcodeBuffer.length >= 3) {
                 const barcode = usbBarcodeBuffer.trim();
@@ -1857,14 +1912,12 @@ function setupUSBBarcodeListener() {
 
                 console.log('USB Barcode scanned:', barcode);
 
-                // Open scanner modal & process
                 openBarcodeScannerModal();
                 setTimeout(() => processBarcodeValue(barcode), 200);
             }
             return;
         }
 
-        // Accumulate printable characters
         if (e.key.length === 1) {
             usbBarcodeBuffer += e.key;
 
