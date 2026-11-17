@@ -290,7 +290,7 @@ function getAgeDisplay(patientData) {
 
 // ============================================
 // REGISTRATION ID - SEQUENTIAL PER DATE
-// Format: RJFFMC-YYMMDD-0001
+// Format: FMC-YYMMDD-0001
 // ============================================
 
 async function checkRegistrationIdExists(registrationId) {
@@ -314,7 +314,7 @@ async function generateSequentialRegistrationID() {
     const mm = (bdTime.getMonth() + 1).toString().padStart(2, '0');
     const dd = bdTime.getDate().toString().padStart(2, '0');
     const dateKey = `${yy}${mm}${dd}`;
-    const prefix = `RJFFMC-${dateKey}-`;
+    const prefix = `FMC-${dateKey}-`;
 
     for (let attempt = 0; attempt < 5; attempt++) {
         try {
