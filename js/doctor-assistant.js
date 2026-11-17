@@ -1652,15 +1652,29 @@ async function startBarcodeCamera() {
             statusEl.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Starting camera...</p>';
         }
 
-        barcodeScanner = new Html5Qrcode("barcodeReader");
+        // Optimization 1: মোবাইলের নেটিভ হার্ডওয়্যার স্ক্যানার ব্যবহার করা হবে (অনেক ফাস্ট)
+        barcodeScanner = new Html5Qrcode("barcodeReader", {
+            useBarCodeDetectorIfSupported: true,
+            verbose: false
+        });
 
+        // Optimization 2: স্ক্যানিং কনফিগারেশন আপডেট
         const config = {
-            fps: 10,
-            qrbox: { width: 280, height: 140 }
+            fps: 15, // ফ্রেম রেট বাড়ানো হয়েছে দ্রুত রেসপন্সের জন্য
+            qrbox: { width: 280, height: 140 },
+            aspectRatio: 1.777778, // 16:9 রেশিও
+            disableFlip: true // বারকোড সাধারণত সোজা থাকে, তাই ফ্লিপ বন্ধ রাখা হয়েছে যা CPU সেভ করবে
+        };
+
+        // Optimization 3: মোবাইল ক্যামেরার রেজোলিউশন 720p এ লিমিট করা হয়েছে
+        const cameraConfig = { 
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
         };
 
         await barcodeScanner.start(
-            { facingMode: "environment" },
+            cameraConfig,
             config,
             onBarcodeScanned,
             onBarcodeScanError
