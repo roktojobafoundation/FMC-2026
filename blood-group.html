@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#c62828">
+  <meta name="description"
+    content="Roktojoba Foundation - Free Blood Group Camp | রক্তদাতা নিবন্ধন ও রক্তের গ্রুপ পরীক্ষার রিপোর্ট">
+  <title>RJF FBG Camp Software</title>
+  <link rel="icon" href="assets/logo.webp">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --red: #d32f2f;
+      --red-d: #9a0007;
+      --red-l: #ff6659;
+      --ink: #172033;
+      --mut: #667085;
+      --line: #e6e9f0;
+      --bg: #f3f5fa;
+      --green: #16a34a
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      font-family: 'Hind Siliguri', system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 2rem
+    }
+
+    .bg-fx {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      background: radial-gradient(circle at 1px 1px, #dde1ea 1px, transparent 0) 0 0/24px 24px
+    }
+
+    .bg-fx i {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: .45;
+      animation: float 14s ease-in-out infinite
+    }
+
+    .bg-fx i:nth-child(1) {
+      width: 380px;
+      height: 380px;
+      background: #ffb4b4;
+      top: -120px;
+      left: -100px
+    }
+
+    .bg-fx i:nth-child(2) {
+      width: 320px;
+      height: 320px;
+      background: #ffd6c9;
+      bottom: -100px;
+      right: -80px;
+      animation-delay: -6s
+    }
+
+    @keyframes float {
+      50% {
+        transform: translate(40px, 30px) scale(1.12)
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-14px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes rv {
+      from {
+        opacity: 0;
+        transform: translateY(18px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .rv {
+      opacity: 0;
+      animation: rv .65s cubic-bezier(.2, .7, .2, 1) forwards;
+      animation-delay: calc(var(--d, 0)*90ms)
+    }
+
+    /* topbar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, .85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line)
+    }
+
+    .topbar::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--red), #ff8a65, transparent);
+      background-size: 200% 100%;
+      animation: sheen 4s linear infinite
+    }
+
+    @keyframes sheen {
+      to {
+        background-position: -200% 0
+      }
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      min-width: 0
+    }
+
+    .brand img {
+      width: 46px;
+      height: 46px;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #fff;
+      padding: 3px;
+      box-shadow: 0 4px 14px rgba(211, 47, 47, .22);
+      flex-shrink: 0
+    }
+
+    .brand h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.2
+    }
+
+    .brand small {
+      color: var(--mut);
+      font-size: .74rem;
+      display: block
+    }
+
+    .clock {
+      text-align: right;
+      line-height: 1.2
+    }
+
+    .clock #currentDate {
+      font-size: .72rem;
+      color: var(--mut)
+    }
+
+    .clock #currentTime {
+      font-weight: 700;
+      font-size: .95rem;
+      font-variant-numeric: tabular-nums
+    }
+
+    .db-status {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .74rem;
+      font-weight: 700;
+      padding: .3rem .7rem;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--line)
+    }
+
+    .db-status .dotp {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #fbbf24;
+      box-shadow: 0 0 0 3px rgba(251, 191, 36, .25)
+    }
+
+    .db-status.ok .dotp {
+      background: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, .28);
+      animation: pulse 2s infinite
+    }
+
+    .db-status.err .dotp {
+      background: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, .28)
+    }
+
+    @keyframes pulse {
+      50% {
+        opacity: .4
+      }
+    }
+
+    /* stats */
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      padding: .9rem 1rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 6px 18px rgba(23, 32, 51, .05);
+      transition: .25s
+    }
+
+    .stat:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 28px rgba(23, 32, 51, .1)
+    }
+
+    .stat .ico {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      font-size: 1.05rem;
+      flex-shrink: 0
+    }
+
+    .ico.red {
+      background: #fdecec;
+      color: var(--red)
+    }
+
+    .ico.grn {
+      background: #e6f7ec;
+      color: var(--green)
+    }
+
+    .ico.blu {
+      background: #e8f1fe;
+      color: #2563eb
+    }
+
+    .ico.amb {
+      background: #fff4e0;
+      color: #d97706
+    }
+
+    .stat .num {
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1;
+      font-variant-numeric: tabular-nums
+    }
+
+    .stat .lbl {
+      font-size: .76rem;
+      color: var(--mut);
+      margin-top: 3px
+    }
+
+    /* panel */
+    .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(23, 32, 51, .06);
+      overflow: hidden
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .ph-title {
+      display: flex;
+      align-items: center;
+      gap: .75rem
+    }
+
+    .ph-title>i {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--red-d), var(--red));
+      box-shadow: 0 6px 14px rgba(211, 47, 47, .3)
+    }
+
+    .ph-title h2 {
+      font-size: 1.02rem;
+      font-weight: 700;
+      margin: 0
+    }
+
+    .ph-title small {
+      color: var(--mut);
+      font-size: .76rem
+    }
+
+    .pct {
+      font-weight: 700;
+      color: var(--red);
+      background: #fdecec;
+      border-radius: 999px;
+      padding: .2rem .75rem;
+      font-size: .85rem;
+      font-variant-numeric: tabular-nums
+    }
+
+    .prog {
+      height: 4px;
+      background: #f1f3f8
+    }
+
+    .prog span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--red), #ff8a65);
+      transition: width .5s cubic-bezier(.2, .8, .2, 1)
+    }
+
+    .prog span.done {
+      background: linear-gradient(90deg, var(--green), #4ade80)
+    }
+
+    .sec {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-weight: 700;
+      font-size: .95rem;
+      margin: .2rem 0 .9rem
+    }
+
+    .sec .n {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--red);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: .78rem
+    }
+
+    .sec::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--line)
+    }
+
+    /* form */
+    .form-label {
+      font-weight: 600;
+      font-size: .92rem;
+      margin-bottom: .35rem
+    }
+
+    .req {
+      color: var(--red);
+      font-weight: 700
+    }
+
+    .fi {
+      position: relative
+    }
+
+    .fi>i {
+      position: absolute;
+      left: .95rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9aa3b5;
+      pointer-events: none;
+      z-index: 2;
+      transition: .2s
+    }
+
+    .fi:focus-within>i {
+      color: var(--red)
+    }
+
+    .fi .form-control,
+    .fi .form-select {
+      padding-left: 2.55rem
+    }
+
+    .form-control,
+    .form-select {
+      border-radius: 12px;
+      border: 1.6px solid #e3e6ec;
+      padding: .66rem .9rem;
+      background-color: #fbfcfe;
+      transition: .18s
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 .22rem rgba(211, 47, 47, .13);
+      background-color: #fff
+    }
+
+    .form-select:disabled {
+      background-color: #f3f5f9;
+      cursor: not-allowed
+    }
+
+    .input-group-text {
+      border-radius: 12px 0 0 12px;
+      border: 1.6px solid #e3e6ec;
+      border-right: 0;
+      background: #f2f4f8;
+      font-weight: 700
+    }
+
+    .input-group .form-control {
+      border-radius: 0 12px 12px 0
+    }
+
+    .was-validated .form-control:invalid,
+    .was-validated .form-select:invalid {
+      border-color: #dc3545
+    }
+
+    .was-validated .form-control:valid,
+    .was-validated .form-select:valid {
+      border-color: #28a745
+    }
+
+    .was-validated .form-control {
+      background-image: none !important
+    }
+
+    .was-validated .fi:has(:invalid)~.invalid-feedback,
+    .was-validated .input-group:has(:invalid)~.invalid-feedback {
+      display: block
+    }
+
+    small.hint {
+      display: block;
+      color: var(--mut);
+      font-size: .78rem;
+      margin-top: .3rem
+    }
+
+    .blood-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .5rem;
+      position: relative
+    }
+
+    .blood-radio {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      pointer-events: none
+    }
+
+    .blood-chip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: .7rem .2rem;
+      border-radius: 14px;
+      border: 2px solid #e6e9ef;
+      background: #fbfcfe;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #414a59;
+      cursor: pointer;
+      user-select: none;
+      transition: .18s
+    }
+
+    .blood-chip:hover {
+      border-color: #f2a3a3;
+      background: #fff6f6;
+      transform: translateY(-2px)
+    }
+
+    .blood-radio:checked+.blood-chip {
+      background: linear-gradient(135deg, var(--red-d), var(--red));
+      border-color: var(--red);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(198, 40, 40, .3);
+      transform: translateY(-2px) scale(1.04)
+    }
+
+    .blood-radio:focus-visible+.blood-chip {
+      outline: 3px solid rgba(229, 57, 53, .35);
+      outline-offset: 2px
+    }
+
+    .blood-grid.is-invalid .blood-chip {
+      border-color: #f1aeb5
+    }
+
+    .blood-error {
+      display: none;
+      color: #dc3545;
+      font-size: .82rem;
+      margin-top: .35rem;
+      font-weight: 500
+    }
+
+    .blood-grid.is-invalid~.blood-error {
+      display: block
+    }
+
+    /* toggle */
+    .db-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: .9rem 1.1rem;
+      border-radius: 16px;
+      border: 2px solid #d8f3e0;
+      background: linear-gradient(120deg, #f0fdf4, #fff);
+      transition: .25s
+    }
+
+    .db-toggle.off {
+      border-color: #e5e7eb;
+      background: linear-gradient(120deg, #f6f7f9, #fff)
+    }
+
+    .db-toggle-left {
+      display: flex;
+      align-items: center;
+      gap: .85rem;
+      min-width: 0
+    }
+
+    .db-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: #dcfce7;
+      color: #15803d;
+      flex-shrink: 0;
+      transition: .25s
+    }
+
+    .db-toggle.off .db-icon {
+      background: #eceff3;
+      color: #8b93a1
+    }
+
+    .db-title {
+      font-weight: 700;
+      font-size: .95rem;
+      line-height: 1.2
+    }
+
+    .db-sub {
+      font-size: .78rem;
+      color: var(--mut)
+    }
+
+    .db-toggle.on .db-sub {
+      color: #15803d
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 62px;
+      height: 34px;
+      flex-shrink: 0
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      background: #cbd5e1;
+      border-radius: 34px;
+      transition: .28s
+    }
+
+    .slider::before {
+      content: '';
+      position: absolute;
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background: #fff;
+      border-radius: 50%;
+      transition: .28s;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .25)
+    }
+
+    .switch input:checked+.slider {
+      background: var(--green)
+    }
+
+    .switch input:checked+.slider::before {
+      transform: translateX(28px)
+    }
+
+    .switch input:focus-visible+.slider {
+      outline: 3px solid rgba(22, 163, 74, .3);
+      outline-offset: 2px
+    }
+
+    /* buttons */
+    .btn {
+      border-radius: 13px;
+      font-weight: 600;
+      transition: .18s;
+      position: relative;
+      overflow: hidden
+    }
+
+    .btn-lg {
+      padding: .8rem 1rem;
+      font-size: 1rem
+    }
+
+    .btn-blood {
+      background: linear-gradient(135deg, var(--red-d), var(--red));
+      border: none;
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(198, 40, 40, .32)
+    }
+
+    .btn-blood:hover,
+    .btn-blood:focus {
+      background: linear-gradient(135deg, #7a0000, #c62828);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(198, 40, 40, .4)
+    }
+
+    .btn-blood:disabled {
+      opacity: .7;
+      transform: none
+    }
+
+    .btn-outline-blood {
+      border: 2px solid var(--red);
+      color: var(--red);
+      background: #fff
+    }
+
+    .btn-outline-blood:hover {
+      background: var(--red);
+      color: #fff;
+      transform: translateY(-2px)
+    }
+
+    .rip {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .45);
+      transform: scale(0);
+      animation: rip .6s linear;
+      pointer-events: none
+    }
+
+    .btn-outline-blood .rip {
+      background: rgba(211, 47, 47, .25)
+    }
+
+    @keyframes rip {
+      to {
+        transform: scale(4);
+        opacity: 0
+      }
+    }
+
+    /* live preview */
+    .paper {
+      margin: 1rem;
+      padding: 1rem 1rem 1rem 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(#fff, #fafbfd);
+      position: relative
+    }
+
+    .paper::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 14px 0 0 14px;
+      background: linear-gradient(var(--red), #ff8a65)
+    }
+
+    .pp-head {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding-bottom: .6rem;
+      border-bottom: 1px dashed var(--line)
+    }
+
+    .pp-head img {
+      width: 38px;
+      height: 38px;
+      object-fit: contain
+    }
+
+    .pp-head b {
+      display: block;
+      font-size: .92rem;
+      line-height: 1.1
+    }
+
+    .pp-head span {
+      font-size: .72rem;
+      color: var(--red);
+      font-weight: 600
+    }
+
+    .pp-title {
+      text-align: center;
+      font-size: .68rem;
+      letter-spacing: 2px;
+      font-weight: 700;
+      color: var(--red-d);
+      background: #fdeaea;
+      border-radius: 8px;
+      padding: .35rem;
+      margin: .7rem 0
+    }
+
+    .pp-blood {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: .9rem 0 .8rem .3rem
+    }
+
+    .drop {
+      width: 62px;
+      height: 62px;
+      background: linear-gradient(135deg, var(--red-d), var(--red-l));
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      animation: glow 2.6s ease-in-out infinite
+    }
+
+    .drop span {
+      transform: rotate(45deg);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.15rem
+    }
+
+    .drop.bump {
+      animation: bump .5s, glow 2.6s ease-in-out infinite
+    }
+
+    @keyframes glow {
+
+      0%,
+      100% {
+        box-shadow: 0 8px 18px rgba(211, 47, 47, .3)
+      }
+
+      50% {
+        box-shadow: 0 8px 30px rgba(211, 47, 47, .6)
+      }
+    }
+
+    @keyframes bump {
+      40% {
+        transform: rotate(-45deg) scale(1.22)
+      }
+    }
+
+    .pp-blood .k {
+      font-size: .72rem;
+      color: var(--mut)
+    }
+
+    .pp-blood .v {
+      font-weight: 700;
+      font-size: 1.02rem
+    }
+
+    .pp-row {
+      display: flex;
+      justify-content: space-between;
+      gap: .8rem;
+      font-size: .82rem;
+      padding: .3rem 0;
+      border-bottom: 1px solid #f1f3f8
+    }
+
+    .pp-row span:first-child {
+      color: var(--mut);
+      white-space: nowrap
+    }
+
+    .pp-row span:last-child {
+      font-weight: 600;
+      text-align: right;
+      word-break: break-word
+    }
+
+    .ph {
+      color: #b6bdcb !important;
+      font-weight: 400 !important
+    }
+
+    .pp-bar {
+      margin-top: .8rem;
+      opacity: .85
+    }
+
+    .pp-bar svg {
+      width: 100%;
+      height: 34px;
+      display: block
+    }
+
+    .recent {
+      list-style: none;
+      margin: 0;
+      padding: .3rem .8rem;
+      max-height: 250px;
+      overflow: auto
+    }
+
+    .recent li {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .55rem .2rem;
+      border-bottom: 1px solid #f1f3f8;
+      animation: slideIn .4s
+    }
+
+    .recent li:last-child {
+      border: 0
+    }
+
+    .recent .bg {
+      min-width: 42px;
+      text-align: center;
+      padding: .25rem 0;
+      border-radius: 9px;
+      background: #fdecec;
+      color: var(--red);
+      font-weight: 700;
+      font-size: .82rem
+    }
+
+    .recent b {
+      font-size: .88rem
+    }
+
+    .recent small {
+      display: block;
+      color: var(--mut);
+      font-size: .72rem
+    }
+
+    .recent li>i {
+      margin-left: auto;
+      color: #a0a8b8
+    }
+
+    .recent li>i.ok {
+      color: var(--green)
+    }
+
+    .recent .empty {
+      flex-direction: column;
+      justify-content: center;
+      gap: .3rem;
+      color: #a0a8b8;
+      padding: 1.4rem;
+      font-size: .85rem;
+      animation: none
+    }
+
+    .aside-sticky {
+      position: sticky;
+      top: 84px
+    }
+
+    /* footer / modal / toast */
+    .site-footer {
+      text-align: center;
+      font-size: .82rem;
+      color: var(--mut);
+      margin-top: 2rem;
+      line-height: 1.7
+    }
+
+    .site-footer a {
+      color: var(--red);
+      text-decoration: none;
+      font-weight: 600
+    }
+
+    .modal-content {
+      border: none;
+      border-radius: 22px;
+      overflow: hidden
+    }
+
+    .success-check {
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, var(--green));
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 2rem;
+      margin: 0 auto .9rem;
+      box-shadow: 0 10px 24px rgba(22, 163, 74, .35);
+      animation: pop .4s cubic-bezier(.2, 1.4, .5, 1)
+    }
+
+    .success-check.bad {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      box-shadow: 0 10px 24px rgba(220, 38, 38, .35)
+    }
+
+    @keyframes pop {
+      from {
+        transform: scale(.4);
+        opacity: 0
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1
+      }
+    }
+
+    .reg-id-box {
+      background: #fff5f5;
+      border: 2px dashed #f2a3a3;
+      border-radius: 14px;
+      padding: .8rem
+    }
+
+    .reg-id-box .label {
+      font-size: .72rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--mut);
+      font-weight: 700
+    }
+
+    .reg-id-box .value {
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: var(--red);
+      letter-spacing: 1px;
+      word-break: break-all
+    }
+
+    #toastWrap {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      width: min(94vw, 460px);
+      pointer-events: none
+    }
+
+    .app-toast {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .8rem 1rem;
+      border-radius: 13px;
+      color: #fff;
+      font-weight: 600;
+      font-size: .9rem;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, .2);
+      animation: slideIn .28s;
+      pointer-events: auto;
+      transition: .28s
+    }
+
+    .app-toast.hide {
+      opacity: 0;
+      transform: translateY(-12px)
+    }
+
+    .app-toast.success {
+      background: linear-gradient(135deg, var(--green), #22c55e)
+    }
+
+    .app-toast.danger {
+      background: linear-gradient(135deg, #dc2626, #ef4444)
+    }
+
+    .app-toast.warning {
+      background: linear-gradient(135deg, #d97706, #f59e0b)
+    }
+
+    @media(min-width:768px) {
+      .blood-grid {
+        grid-template-columns: repeat(8, 1fr)
+      }
+    }
+
+    @media(max-width:575.98px) {
+      .brand h1 {
+        font-size: .95rem
+      }
+
+      .brand small {
+        display: none
+      }
+
+      .brand img {
+        width: 40px;
+        height: 40px
+      }
+
+      .blood-chip {
+        padding: .6rem .1rem;
+        font-size: .95rem;
+        border-radius: 12px
+      }
+
+      .panel-head {
+        padding: .85rem 1rem
+      }
+
+      .stat {
+        padding: .75rem
+      }
+
+      .stat .ico {
+        width: 38px;
+        height: 38px
+      }
+
+      .stat .num {
+        font-size: 1.2rem
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      * {
+        animation: none !important;
+        transition: none !important
+      }
+
+      .rv {
+        opacity: 1
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-fx"><i></i><i></i></div>
+  <div id="toastWrap"></div>
+
+  <header class="topbar">
+    <div class="container py-2 d-flex align-items-center justify-content-between gap-2">
+      <div class="brand">
+        <img src="assets/logo.webp" alt="Roktojoba Foundation Logo" onerror="this.style.visibility='hidden'">
+        <div>
+          <h1>Roktojoba Foundation</h1><small>Free Blood Group Camp • Management System</small>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div class="clock">
+          <div id="currentDate" class="d-none d-md-block">—</div>
+          <div id="currentTime">—</div>
+        </div>
+        <span class="db-status" id="dbStatus"><span class="dotp"></span><span id="dbStatusText">সংযোগ
+            হচ্ছে...</span></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container py-3 py-md-4">
+    <div class="row g-3 mb-3 mb-md-4">
+      <div class="col-6 col-md-3 rv" style="--d:0">
+        <div class="stat">
+          <div class="ico red"><i class="fas fa-user-check"></i></div>
+          <div>
+            <div class="num" id="stReg">০</div>
+            <div class="lbl">আজকের নিবন্ধন</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3 rv" style="--d:1">
+        <div class="stat">
+          <div class="ico grn"><i class="fas fa-database"></i></div>
+          <div>
+            <div class="num" id="stSaved">০</div>
+            <div class="lbl">ডাটাবেজে সংরক্ষিত</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3 rv" style="--d:2">
+        <div class="stat">
+          <div class="ico blu"><i class="fas fa-print"></i></div>
+          <div>
+            <div class="num" id="stPrint">০</div>
+            <div class="lbl">রিপোর্ট প্রিন্ট</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3 rv" style="--d:3">
+        <div class="stat">
+          <div class="ico amb"><i class="fas fa-list-check"></i></div>
+          <div>
+            <div class="num"><span id="stProg">০</span>%</div>
+            <div class="lbl">ফর্ম সম্পূর্ণ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 g-lg-4">
+      <!-- FORM -->
+      <div class="col-lg-8 rv" style="--d:4">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="ph-title"><i class="fas fa-user-plus"></i>
+              <div>
+                <h2>রক্তদাতা নিবন্ধন ফর্ম</h2><small>* চিহ্নিত সব তথ্য আবশ্যক</small>
+              </div>
+            </div>
+            <div class="pct" id="pctBadge">০%</div>
+          </div>
+          <div class="prog"><span id="progBar"></span></div>
+
+          <form id="donorForm" class="p-3 p-md-4" novalidate autocomplete="off">
+            <div class="sec"><span class="n">১</span>ব্যক্তিগত তথ্য</div>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="donorName" class="form-label">নাম <span class="req">*</span></label>
+                <div class="fi"><i class="fas fa-user"></i><input type="text" class="form-control form-control-lg"
+                    id="donorName" placeholder="ইংরেজীতে নাম লিখুন (A-Z)" required minlength="2" maxlength="60"
+                    pattern="[A-Za-z]+(?: [A-Za-z]+)*" inputmode="text" autocomplete="off"></div>
+                <div class="invalid-feedback">শুধুমাত্র ইংরেজি বর্ণ (A-Z) দিয়ে নাম লিখুন</div>
+                <small class="hint">শুধুমাত্র ইংরেজি বর্ণ ও স্পেস অনুমোদিত</small>
+              </div>
+              <div class="col-md-6">
+                <label for="donorPhone" class="form-label">মোবাইল নম্বর (WhatsApp) <span class="req">*</span></label>
+                <div class="input-group input-group-lg"><span class="input-group-text">+88</span>
+                  <input type="tel" class="form-control form-control-lg" id="donorPhone" placeholder="01XXXXXXXXX"
+                    required pattern="^(01[3-9]\d{8})$" inputmode="numeric" maxlength="11">
+                </div>
+                <div class="invalid-feedback">বৈধ মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)</div>
+                <small class="hint">একটি সচল WhatsApp নম্বর প্রদান করুন</small>
+              </div>
+              <div class="col-6">
+                <label for="donorAge" class="form-label">বয়স <span class="req">*</span></label>
+                <div class="fi"><i class="fas fa-hourglass-half"></i><input type="number"
+                    class="form-control form-control-lg" id="donorAge" placeholder="যেমন: 18" min="1" max="120"
+                    required></div>
+                <div class="invalid-feedback">বয়স লিখুন</div>
+              </div>
+              <div class="col-6">
+                <label for="donorGender" class="form-label">লিঙ্গ <span class="req">*</span></label>
+                <div class="fi"><i class="fas fa-venus-mars"></i><select class="form-select form-select-lg"
+                    id="donorGender" required>
+                    <option value="" selected disabled>নির্বাচন করুন</option>
+                    <option value="Male">পুরুষ (Male)</option>
+                    <option value="Female">নারী (Female)</option>
+                    <option value="Other">অন্যান্য</option>
+                  </select></div>
+                <div class="invalid-feedback">লিঙ্গ নির্বাচন করুন</div>
+              </div>
+            </div>
+
+            <div class="sec"><span class="n">২</span>রক্তের গ্রুপ <span class="req">*</span></div>
+            <div class="mb-4">
+              <div class="blood-grid" id="bloodGrid"></div>
+              <div class="blood-error">অনুগ্রহ করে রক্তের গ্রুপ নির্বাচন করুন</div>
+            </div>
+
+            <div class="sec"><span class="n">৩</span>ঠিকানা</div>
+            <div class="row g-3 mb-4">
+              <div class="col-md-4"><label for="donorDivision" class="form-label">বিভাগ <span
+                    class="req">*</span></label>
+                <div class="fi"><i class="fas fa-map"></i><select class="form-select form-select-lg" id="donorDivision"
+                    required>
+                    <option value="" selected disabled>বিভাগ নির্বাচন করুন</option>
+                  </select></div>
+                <div class="invalid-feedback">বিভাগ নির্বাচন করুন</div>
+              </div>
+              <div class="col-md-4"><label for="donorDistrict" class="form-label">জেলা <span
+                    class="req">*</span></label>
+                <div class="fi"><i class="fas fa-city"></i><select class="form-select form-select-lg" id="donorDistrict"
+                    required disabled>
+                    <option value="" selected disabled>জেলা নির্বাচন করুন</option>
+                  </select></div>
+                <div class="invalid-feedback">জেলা নির্বাচন করুন</div>
+              </div>
+              <div class="col-md-4"><label for="donorUpazila" class="form-label">উপজেলা <span
+                    class="req">*</span></label>
+                <div class="fi"><i class="fas fa-location-dot"></i><select class="form-select form-select-lg"
+                    id="donorUpazila" required disabled>
+                    <option value="" selected disabled>উপজেলা নির্বাচন করুন</option>
+                  </select></div>
+                <div class="invalid-feedback">উপজেলা নির্বাচন করুন</div>
+              </div>
+            </div>
+
+            <div class="db-toggle on" id="dbToggleCard">
+              <div class="db-toggle-left">
+                <div class="db-icon"><i class="fas fa-database"></i></div>
+                <div>
+                  <div class="db-title">ডাটাবেজে সংরক্ষণ</div>
+                  <div class="db-sub" id="dbSubText">চালু — তথ্য ডাটাবেজে সংরক্ষিত হবে</div>
+                </div>
+              </div>
+              <label class="switch" for="saveToggle" aria-label="ডাটাবেজে সংরক্ষণ টগল"><input type="checkbox"
+                  id="saveToggle" checked><span class="slider"></span></label>
+            </div>
+
+            <div class="row g-2 g-md-3 mt-3">
+              <div class="col-md-5"><button type="button" id="reportBtn" class="btn btn-outline-blood btn-lg w-100"><i
+                    class="fas fa-file-medical me-2"></i>রিপোর্ট তৈরি করুন</button></div>
+              <div class="col-md-7"><button type="submit" id="submitBtn" class="btn btn-blood btn-lg w-100"><i
+                    class="fas fa-check-circle me-2"></i>নিবন্ধন সম্পন্ন করুন</button></div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ASIDE -->
+      <div class="col-lg-4 rv" style="--d:5">
+        <div class="aside-sticky">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="ph-title"><i class="fas fa-eye"></i>
+                <div>
+                  <h2>লাইভ রিপোর্ট প্রিভিউ</h2><small>ফর্ম পূরণের সাথে সাথে আপডেট হয়</small>
+                </div>
+              </div>
+            </div>
+            <div class="paper">
+              <div class="pp-head"><img src="assets/logo.webp" alt="" onerror="this.style.display='none'">
+                <div><b>Roktojoba Foundation</b><span>Free Blood Group Camp</span></div>
+              </div>
+              <div class="pp-title">BLOOD GROUP TEST REPORT</div>
+              <div class="pp-blood">
+                <div class="drop" id="pvDrop"><span id="pvBlood">?</span></div>
+                <div>
+                  <div class="k">Blood Group (ABO) &amp; Rh</div>
+                  <div class="v" id="pvRh">—</div>
+                </div>
+              </div>
+              <div class="pp-row"><span>Patient ID</span><span id="pvId">—</span></div>
+              <div class="pp-row"><span>Name</span><span id="pvName">—</span></div>
+              <div class="pp-row"><span>Age / Sex</span><span id="pvAge">—</span></div>
+              <div class="pp-row"><span>Mobile</span><span id="pvPhone">—</span></div>
+              <div class="pp-row"><span>Location</span><span id="pvLoc">—</span></div>
+              <div class="pp-bar" id="pvBar"></div>
+            </div>
+          </div>
+          <div class="panel mt-3">
+            <div class="panel-head">
+              <div class="ph-title"><i class="fas fa-clock-rotate-left"></i>
+                <div>
+                  <h2>সাম্প্রতিক নিবন্ধন</h2><small>এই সেশনের তালিকা</small>
+                </div>
+              </div>
+            </div>
+            <ul class="recent" id="recentList"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer container">
+    <div>© Roktojoba Foundation. All rights reserved. • Mobile: <a href="tel:+8801960506601">+880 1960-506601</a></div>
+    <div>Software Designed &amp; Developed by <a href="https://www.facebook.com/md.tasrik.hossain" target="_blank"
+        rel="noopener">MD Tasrik Hossain</a></div>
+  </footer>
+
+  <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body text-center p-4">
+          <div class="success-check"><i class="fas fa-check"></i></div>
+          <h4 class="fw-bold mb-1" id="successTitle">সফল হয়েছে!</h4>
+          <p class="text-muted mb-3" id="successText" style="font-size:.92rem"></p>
+          <div class="reg-id-box">
+            <div class="label">Report ID</div>
+            <div class="value" id="successRegId">—</div>
+          </div>
+          <div class="d-grid gap-2 mt-3"><button class="btn btn-blood btn-lg" id="printFromModal"><i
+                class="fas fa-print me-2"></i>রিপোর্ট প্রিন্ট করুন</button><button class="btn btn-light"
+              data-bs-dismiss="modal">বন্ধ করুন</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body text-center p-4">
+          <div class="success-check bad"><i class="fas fa-exclamation-triangle"></i></div>
+          <h4 class="fw-bold mb-2">ত্রুটি!</h4>
+          <p class="text-muted mb-3" id="errorMessage" style="font-size:.92rem">একটি ত্রুটি ঘটেছে।</p>
+          <div class="d-grid gap-2"><button class="btn btn-outline-blood" id="reportFromError"><i
+                class="fas fa-file-medical me-2"></i>তবুও রিপোর্ট তৈরি করুন</button><button class="btn btn-light"
+              data-bs-dismiss="modal">বন্ধ করুন</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- বিভাগ/জেলা/উপজেলার ডেটা (const bangladeshData = {...}) -->
+  <script>
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyBSgyeYCbyB8cMFdqMcNtDZeL4aM-_FfQ4",
+      authDomain: "rjf-blood-connect.firebaseapp.com",
+      databaseURL: "https://rjf-blood-connect-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rjf-blood-connect",
+      storageBucket: "rjf-blood-connect.firebasestorage.app",
+      messagingSenderId: "536870508483",
+      appId: "1:536870508483:web:1ce2211ec28f79ce514f76",
+      measurementId: "G-34RDD8GL9C"
+    };
+    const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+    const COLLECTION_NAME = 'donors';
+    const LOGO_URL = new URL('assets/logo.webp', location.href).href;
+    const $ = id => document.getElementById(id);
+    const bn = n => String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+
+    /* Bangladesh administrative data */
+    const bangladeshData = {
+      divisions: [
+        {
+          name: "ঢাকা",
+          districts: [
+            {name: "ঢাকা", upazilas: ["আদাবর", "বাড্ডা", "বংশাল", "বিমান বন্দর", "বনানী", "ক্যান্টনমেন্ট", "চকবাজার", "দক্ষিণখান", "দারুসসালাম", "ডেমরা", "ধামরাই", "ধানমন্ডি", "দোহার", "ভাষানটেক", "ভাটারা", "গেন্ডারিয়া", "গুলশান", "হাতিরঝিল", "হাজারীবাগ", "যাত্রাবাড়ী", "কাফরুল", "কদমতলী", "কলাবাগান", "কামরাঙ্গীর চর", "খিলগাঁও", "খিলক্ষেত", "কেরানীগঞ্জ", "কোতয়ালী", "লালবাগ", "মিরপুর", "মোহাম্মদপুর", "মতিঝিল", "মুগদা", "নবাবগঞ্জ", "নিউ মার্কেট", "পল্লবী", "পল্টন", "রমনা", "রামপুরা", "সবুজবাগ", "রূপনগর", "সাভার", "শাহজাহানপুর", "শাহ্ আলী", "শাহবাগ", "শ্যামপুর", "শেরে বাংলা নগর", "সুত্রাপুর", "তেজগাঁও", "তেজগাঁও শিল্প এলাকা", "তুরাগ", "উত্তরা পশ্চিম", "উত্তরা পূর্ব", "উত্তর খান", "ওয়ারী"]},
+            {name: "ফরিদপুর", upazilas: ["আলফাডাঙ্গা", "ভাঙ্গা", "বোয়ালমারী", "চরভদ্রাসন", "ফরিদপুর সদর", "মধুখালী", "নগরকান্দা", "সদরপুর", "সালথা"]},
+            {name: "গাজীপুর", upazilas: ["গাজীপুর সদর", "কালিয়াকৈর", "কাপাসিয়া", "শ্রীপুর", "কালীগঞ্জ"]},
+            {name: "গোপালগঞ্জ", upazilas: ["গোপালগঞ্জ সদর", "কাশিয়ানি", "কোটালীপাড়া", "মুকসুদপুর", "টুংগীপাড়া"]},
+            {name: "কিশোরগঞ্জ", upazilas: ["অষ্টগ্রাম", "বাজিতপুর", "ভৈরব", "হোসেনপুর", "ইটনা", "করিমগঞ্জ", "কটিয়াদী", "কিশোরগঞ্জ সদর", "কুলিয়ারচর", "মিঠামইন", "নিকলী", "পাকুন্দিয়া", "তাড়াইল"]},
+            {name: "মাদারীপুর", upazilas: ["কালকিনি", "মাদারীপুর সদর", "রাজৈর", "শিবচর"]},
+            {name: "মানিকগঞ্জ", upazilas: ["দৌলতপুর", "ঘিওর", "হরিরামপুর", "মানিকগঞ্জ সদর", "সাটুরিয়া", "শিবালয়", "সিংগাইর"]},
+            {name: "মুন্সিগঞ্জ", upazilas: ["গজারিয়া", "লৌহজং", "মুন্সিগঞ্জ সদর", "সিরাজদিখান", "শ্রীনগর", "টঙ্গীবাড়ি"]},
+            {name: "নারায়ণগঞ্জ", upazilas: ["আড়াইহাজার", "বন্দর", "নারায়ণগঞ্জ সদর", "রূপগঞ্জ", "সোনারগাঁ"]},
+            {name: "নরসিংদী", upazilas: ["বেলাবো", "মনোহরদী", "নরসিংদী সদর", "পলাশ", "রায়পুরা", "শিবপুর"]},
+            {name: "রাজবাড়ী", upazilas: ["বালিয়াকান্দি", "গোয়ালন্দ", "পাংশা", "রাজবাড়ী সদর"]},
+            {name: "শরীয়তপুর", upazilas: ["ভেদরগঞ্জ", "দামুদ্যা", "গোসাইরহাট", "নড়িয়া", "শরীয়তপুর সদর", "জাজিরা"]},
+            {name: "টাঙ্গাইল", upazilas: ["বাসাইল", "ভূয়াপুর", "দেলদুয়ার", "ধনবাড়ী", "ঘাটাইল", "গোপালপুর", "কালিহাটী", "মধুপুর", "মির্জাপুর", "নাগরপুর", "সখিপুর", "টাঙ্গাইল সদর"]}
+          ]
+        },
+        {
+          name: "চট্টগ্রাম",
+          districts: [
+            {name: "বান্দরবান", upazilas: ["আলীকদম", "বান্দরবান সদর", "লামা", "নাইক্ষ্যংছড়ি", "রোয়াংছড়ি", "রুমা", "থানচি"]},
+            {name: "ব্রাহ্মণবাড়িয়া", upazilas: ["আখাউড়া", "বাঞ্ছারামপুর", "ব্রাহ্মণবাড়িয়া সদর", "কসবা", "নবীনগর", "নাসিরনগর", "সরাইল", "আশুগঞ্জ", "বিজয়নগর"]},
+            {name: "চাঁদপুর", upazilas: ["চাঁদপুর সদর", "ফরিদগঞ্জ", "হাইমচর", "হাজীগঞ্জ", "কচুয়া", "মতলব দক্ষিণ", "মতলব উত্তর", "শাহরাস্তি"]},
+            {name: "চট্টগ্রাম", upazilas: ["আনোয়ারা", "বাঁশখালী", "বোয়ালখালী", "চন্দনাইশ", "ফটিকছড়ি", "হাটহাজারী", "লোহাগাড়া", "মীরসরাই", "পটিয়া", "রাঙ্গুনিয়া", "রাউজান", "সন্দ্বীপ", "সাতকানিয়া", "সীতাকুণ্ড"]},
+            {name: "কুমিল্লা", upazilas: ["বরুড়া", "ব্রাহ্মণপাড়া", "বুড়িচং", "চান্দিনা", "চৌদ্দগ্রাম", "দাউদকান্দি", "দেবীদ্বার", "হোমনা", "কুমিল্লা সদর", "লাকসাম", "মনোহরগঞ্জ", "মেঘনা", "মুরাদনগর", "নাঙ্গলকোট", "কুমিল্লা আদর্শ সদর", "তিতাস"]},
+            {name: "কক্সবাজার", upazilas: ["চকরিয়া", "কক্সবাজার সদর", "কুতুবদিয়া", "মহেশখালী", "রামু", "টেকনাফ", "উখিয়া", "পেকুয়া"]},
+            {name: "ফেনী", upazilas: ["ছাগলনাইয়া", "দাগনভূঞা", "ফেনী সদর", "পরশুরাম", "সোনাগাজী", "ফুলগাজী"]},
+            {name: "খাগড়াছড়ি", upazilas: ["দিঘীনালা", "খাগড়াছড়ি সদর", "লক্ষ্মীছড়ি", "মহালছড়ি", "মানিকছড়ি", "মাটিরাঙ্গা", "পানছড়ি", "রামগড়"]},
+            {name: "লক্ষ্মীপুর", upazilas: ["লক্ষ্মীপুর সদর", "রায়পুর", "রামগঞ্জ", "রামগতি", "কমলনগর"]},
+            {name: "নোয়াখালী", upazilas: ["বেগমগঞ্জ", "চাটখিল", "কোম্পানীগঞ্জ", "হাতিয়া", "সেনবাগ", "নোয়াখালী সদর", "সোনাইমুড়ি", "সুবর্ণচর", "কবিরহাট"]},
+            {name: "রাঙ্গামাটি", upazilas: ["বাঘাইছড়ি", "বরকল", "কাউখালী", "বিলাইছড়ি", "কাপ্তাই", "জুরাছড়ি", "লংগদু", "নানিয়ারচর", "রাজস্থলী", "রাঙ্গামাটি সদর"]}
+          ]
+        },
+        {
+          name: "সিলেট",
+          districts: [
+            {name: "হবিগঞ্জ", upazilas: ["আজমিরীগঞ্জ", "বাহুবল", "বানিয়াচং", "চুনারুঘাট", "হবিগঞ্জ সদর", "লাখাই", "মাধবপুর", "নবীগঞ্জ", "শায়েস্তাগঞ্জ"]},
+            {name: "মৌলভীবাজার", upazilas: ["বড়লেখা", "জুড়ী", "কমলগঞ্জ", "কুলাউড়া", "মৌলভীবাজার সদর", "রাজনগর", "শ্রীমঙ্গল"]},
+            {name: "সুনামগঞ্জ", upazilas: ["বিশ্বম্ভরপুর", "ছাতক", "দিরাই", "ধর্মপাশা", "দোয়ারাবাজার", "জগন্নাথপুর", "জামালগঞ্জ", "সুল্লা", "সুনামগঞ্জ সদর", "তাহিরপুর"]},
+            {name: "সিলেট", upazilas: ["বালাগঞ্জ", "বিয়ানীবাজার", "বিশ্বনাথ", "কোম্পানীগঞ্জ", "ফেঞ্চুগঞ্জ", "গোলাপগঞ্জ", "গোয়াইনঘাট", "জৈন্তাপুর", "কানাইঘাট", "সিলেট সদর", "জাকিগঞ্জ", "দক্ষিণ সুরমা", "ওসমানী নগর"]}
+          ]
+        },
+        {
+          name: "রাজশাহী",
+          districts: [
+            {name: "বগুড়া", upazilas: ["আদমদীঘি", "বগুড়া সদর", "শেরপুর", "ধুনট", "ধুপচাঁচিয়া", "গাবতলী", "কাহালু", "নন্দীগ্রাম", "সাহজাদপুর", "সারিয়াকান্দি", "শিবগঞ্জ", "সোনাতলা"]},
+            {name: "চাঁপাইনবাবগঞ্জ", upazilas: ["ভোলাহাট", "গোমস্তাপুর", "নাচোল", "চাঁপাইনবাবগঞ্জ সদর", "শিবগঞ্জ"]},
+            {name: "জয়পুরহাট", upazilas: ["আক্কেলপুর", "জয়পুরহাট সদর", "কালাই", "ক্ষেতলাল", "পাঁচবিবি"]},
+            {name: "নওগাঁ", upazilas: ["আত্রাই", "বাদলগাছি", "ধামইরহাট", "মান্দা", "মহাদেবপুর", "নওগাঁ সদর", "নিয়ামতপুর", "পত্নীতলা", "পোরশা", "রাণীনগর", "সাপাহার"]},
+            {name: "নাটোর", upazilas: ["বাগাতিপাড়া", "বড়াইগ্রাম", "গুরুদাসপুর", "লালপুর", "নাটোর সদর", "সিংড়া"]},
+            {name: "পাবনা", upazilas: ["আটঘরিয়া", "বেড়া", "ভাঙ্গুড়া", "চাটমোহর", "ফরিদপুর", "ঈশ্বরদী", "পাবনা সদর", "সাঁথিয়া", "সুজানগর"]},
+            {name: "রাজশাহী", upazilas: ["বাগমারা", "চারঘাট", "দুর্গাপুর", "গোদাগাড়ী", "মোহনপুর", "পবা", "পুঠিয়া", "তানোর"]},
+            {name: "সিরাজগঞ্জ", upazilas: ["বেলকুচি", "চৌহালি", "কামারখন্দ", "কাজীপুর", "রায়গঞ্জ", "শাহজাদপুর", "সিরাজগঞ্জ সদর", "তারাশ", "উল্লাপাড়া"]}
+          ]
+        },
+        {
+          name: "রংপুর",
+          districts: [
+            {name: "দিনাজপুর", upazilas: ["বিরামপুর", "বীরগঞ্জ", "বিরল", "বোচাগঞ্জ", "চিরিরবন্দর", "ফুলবাড়ী", "ঘোড়াঘাট", "হাকিমপুর", "কাহারোল", "খানসামা", "দিনাজপুর সদর", "নবাবগঞ্জ", "পার্বতীপুর"]},
+            {name: "গাইবান্ধা", upazilas: ["ফুলছড়ি", "গাইবান্ধা সদর", "গোবিন্দগঞ্জ", "পলাশবাড়ী", "সাদুল্লাপুর", "সাঘাটা", "সুন্দরগঞ্জ"]},
+            {name: "কুড়িগ্রাম", upazilas: ["ভুরুঙ্গামারী", "চর রাজিবপুর", "চিলমারী", "ফুলবাড়ী", "কুড়িগ্রাম সদর", "নাগেশ্বরী", "রাজারহাট", "রৌমারী", "উলিপুর"]},
+            {name: "লালমনিরহাট", upazilas: ["আদিতমারী", "হাতিবান্ধা", "কালীগঞ্জ", "লালমনিরহাট সদর", "পাটগ্রাম"]},
+            {name: "নীলফামারী", upazilas: ["ডিমলা", "ডোমার", "জলঢাকা", "কিশোরগঞ্জ", "নীলফামারী সদর", "সৈয়দপুর"]},
+            {name: "পঞ্চগড়", upazilas: ["আটোয়ারী", "বোদা", "দেবীগঞ্জ", "পঞ্চগড় সদর", "তেতুলিয়া"]},
+            {name: "রংপুর", upazilas: ["বদরগঞ্জ", "গঙ্গাচড়া", "কাউনিয়া", "রংপুর সদর", "মিঠাপুকুর", "পীরগঞ্জ", "পীরগাছা", "তারাগঞ্জ"]},
+            {name: "ঠাকুরগাঁও", upazilas: ["বালিয়াডাঙ্গী", "হরিপুর", "পীরগঞ্জ", "রাণীশংকৈল", "ঠাকুরগাঁও সদর"]}
+          ]
+        },
+        {
+          name: "খুলনা",
+          districts: [
+            {name: "বাগেরহাট", upazilas: ["বাগেরহাট সদর", "চিতলমারী", "ফকিরহাট", "কচুয়া", "মোল্লাহাট", "মোংলা", "মোরেলগঞ্জ", "রামপাল", "শরণখোলা"]},
+            {name: "চুয়াডাঙ্গা", upazilas: ["আলমডাঙ্গা", "চুয়াডাঙ্গা সদর", "দামুড়হুদা", "জীবননগর"]},
+            {name: "যশোর", upazilas: ["অভয়নগর", "বাঘারপাড়া", "চৌগাছা", "ঝিকরগাছা", "কেশবপুর", "যশোর সদর", "মনিরামপুর", "শার্শা"]},
+            {name: "ঝিনাইদহ", upazilas: ["হরিণাকুণ্ড", "ঝিনাইদহ সদর", "কালীগঞ্জ", "কোটচাঁদপুর", "মহেশপুর", "শৈলকুপা"]},
+            {name: "খুলনা", upazilas: ["বটিয়াঘাটা", "দাকোপ", "ডুমুরিয়া", "দিঘলিয়া", "কয়রা", "পাইকগাছা", "ফুলতলা", "রূপসা", "তেরখাদা"]},
+            {name: "কুষ্টিয়া", upazilas: ["ভেড়ামারা", "দৌলতপুর", "খোকসা", "কুমারখালী", "কুষ্টিয়া সদর", "মিরপুর"]},
+            {name: "মাগুরা", upazilas: ["মাগুরা সদর", "মোহাম্মদপুর", "শালিখা", "শ্রীপুর"]},
+            {name: "মেহেরপুর", upazilas: ["গাংনি", "মেহেরপুর সদর", "মুজিবনগর"]},
+            {name: "নড়াইল", upazilas: ["কালিয়া", "লোহাগড়া", "নড়াইল সদর"]},
+            {name: "সাতক্ষীরা", upazilas: ["আসসুনি", "দেবহাটা", "কলারোয়া", "কালীগঞ্জ", "সাতক্ষীরা সদর", "শ্যামনগর", "তালা"]}
+          ]
+        },
+        {
+          name: "বরিশাল",
+          districts: [
+            {name: "বরিশাল", upazilas: ["আগৈলঝাড়া", "বাবুগঞ্জ", "বাকেরগঞ্জ", "বানারীপাড়া", "গৌরনদী", "হিজলা", "বরিশাল সদর", "মেহেন্দিগঞ্জ", "মুলাদী", "ওজিরপুর"]},
+            {name: "ভোলা", upazilas: ["ভোলা সদর", "বুরহানউদ্দিন", "চর ফ্যাশন", "দৌলতখান", "লালমোহন", "তজুমদ্দিন", "মনপুরা"]},
+            {name: "ঝালকাঠি", upazilas: ["ঝালকাঠি সদর", "কাঠালিয়া", "নলছিটি", "রাজাপুর"]},
+            {name: "পটুয়াখালী", upazilas: ["বাউফল", "দশমিনা", "গলাচিপা", "কলাপাড়া", "মির্জাগঞ্জ", "পটুয়াখালী সদর", "রাঙ্গাবালী", "দুমকি"]},
+            {name: "পিরোজপুর", upazilas: ["ভান্ডারিয়া", "কাউখালী", "মঠবাড়িয়া", "নাজিরপুর", "পিরোজপুর সদর", "নেছারাবাদ", "জিয়ানগর"]},
+            {name: "বরগুনা", upazilas: ["আমতলী", "বামনা", "বরগুনা সদর", "বেতাগী", "পাথরঘাটা", "তালতলী"]}
+          ]
+        },
+        {
+          name: "ময়মনসিংহ",
+          districts: [
+            {name: "জামালপুর", upazilas: ["বকশীগঞ্জ", "দেওয়ানগঞ্জ", "ইসলামপুর", "জামালপুর সদর", "মাদারগঞ্জ", "মেলান্দহ", "সরিষাবাড়ী"]},
+            {name: "ময়মনসিংহ", upazilas: ["ভালুকা", "ধোবাউড়া", "ফুলবাড়ীয়া", "গফরগাঁও", "গৌরীপুর", "হালুয়াঘাট", "ঈশ্বরগঞ্জ", "ময়মনসিংহ সদর", "মুক্তাগাছা", "নান্দাইল", "ফুলপুর", "ত্রিশাল"]},
+            {name: "নেত্রকোণা", upazilas: ["আটপাড়া", "বারহাট্টা", "দুর্গাপুর", "খালিয়াজুরী", "কেন্দুয়া", "মদন", "মোহনগঞ্জ", "নেত্রকোণা সদর", "পূর্বধলা"]},
+            {name: "শেরপুর", upazilas: ["ঝিনাইগাতী", "নকলা", "নালিতাবাড়ী", "শেরপুর সদর", "শ্রীবরদী"]}
+          ]
+        }
+      ]
+    };
+
+    /* ---------- utils ---------- */
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+    }
+    function formatPhoneNumber(p) {
+      let c = String(p || '').replace(/\D/g, '');
+      if (c.startsWith('88')) c = c.substring(2);
+      if (c.length === 10 && c.startsWith('1')) c = '0' + c;
+      return c;
+    }
+    function makeRegIdPrefix() {
+      const d = new Date(), p = n => String(n).padStart(2, '0');
+      return 'FBGC-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-';
+    }
+
+    async function generateNextRegId() {
+      const prefix = makeRegIdPrefix();
+      let seq = 1;
+      try {
+        const s = JSON.parse(localStorage.getItem('rjf_fbg_seq') || 'null');
+        if (s && s.prefix === prefix && s.seq) seq = s.seq + 1;
+      } catch (e) { }
+      if (firebaseReady) {
+        try {
+          const col = fb.collection(fb.db, COLLECTION_NAME);
+          const snap = await fb.getDocs(fb.query(
+            col,
+            fb.where('registrationId', '>=', prefix),
+            fb.where('registrationId', '<', prefix + '\uf8ff')
+          ));
+          seq = Math.max(seq, snap.size + 1);
+        } catch (e) {console.warn('ID sequence lookup failed:', e);}
+      }
+      try {localStorage.setItem('rjf_fbg_seq', JSON.stringify({prefix, seq}));} catch (e) { }
+      return prefix + String(seq).padStart(4, '0');
+    }
+    function showToast(msg, type) {
+      type = type || 'success';
+      const icons = {success: 'fa-check-circle', danger: 'fa-exclamation-circle', warning: 'fa-triangle-exclamation'};
+      const el = document.createElement('div');
+      el.className = 'app-toast ' + type;
+      el.innerHTML = '<i class="fas ' + (icons[type] || icons.success) + '"></i><span>' + esc(msg) + '</span>';
+      $('toastWrap').appendChild(el);
+      setTimeout(() => {el.classList.add('hide'); setTimeout(() => el.remove(), 320);}, 4200);
+    }
+    function showError(msg) {
+      $('errorMessage').textContent = msg;
+      new bootstrap.Modal($('errorModal')).show();
+    }
+
+    /* ---------- firebase ---------- */
+    let fb = null, firebaseReady = false;
+    function setDbStatus(state, text) {
+      const b = $('dbStatus');
+      b.classList.remove('ok', 'err');
+      if (state) b.classList.add(state);
+      $('dbStatusText').textContent = text;
+    }
+    async function initFirebase() {
+      try {
+        const A = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+        const F = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        fb = {db: F.getFirestore(A.initializeApp(FIREBASE_CONFIG)), collection: F.collection, addDoc: F.addDoc, query: F.query, where: F.where, getDocs: F.getDocs};
+        firebaseReady = true;
+        setDbStatus('ok', 'ডাটাবেজ সংযুক্ত');
+      } catch (err) {
+        console.error('Firebase init failed:', err);
+        firebaseReady = false;
+        setDbStatus('err', 'ডাটাবেজ অফলাইন');
+      }
+    }
+
+    /* ---------- location ---------- */
+    const optHtml = t => '<option value="" selected disabled>' + t + '</option>';
+    function fillSelect(sel, items, placeholder) {
+      sel.innerHTML = optHtml(placeholder) + items.map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('');
+      sel.disabled = !items.length;
+    }
+    function populateDivisions() {
+      if (typeof bangladeshData === 'undefined' || !bangladeshData.divisions || !bangladeshData.divisions.length) {
+        showToast('bd-data.js এ ঠিকানার ডেটা পাওয়া যায়নি।', 'warning');
+        return;
+      }
+      fillSelect($('donorDivision'), bangladeshData.divisions.map(d => d.name), 'বিভাগ নির্বাচন করুন');
+      $('donorDivision').disabled = false;
+    }
+    function updateDistricts(div) {
+      const d = bangladeshData.divisions.find(x => x.name === div);
+      fillSelect($('donorDistrict'), d ? d.districts.map(x => x.name) : [], 'জেলা নির্বাচন করুন');
+      fillSelect($('donorUpazila'), [], 'উপজেলা নির্বাচন করুন');
+    }
+    function updateUpazilas(div, dist) {
+      const d = bangladeshData.divisions.find(x => x.name === div);
+      const dd = d && d.districts.find(x => x.name === dist);
+      fillSelect($('donorUpazila'), dd ? dd.upazilas : [], 'উপজেলা নির্বাচন করুন');
+    }
+
+    /* ---------- blood chips ---------- */
+    function renderBloodChips() {
+      $('bloodGrid').innerHTML = BLOOD_GROUPS.map((g, i) =>
+        '<input type="radio" class="blood-radio" name="donorBloodGroup" id="bg' + i + '" value="' + g + '" required>' +
+        '<label class="blood-chip" for="bg' + i + '">' + g + '</label>').join('');
+    }
+    function getSelectedBloodGroup() {
+      const c = document.querySelector('input[name="donorBloodGroup"]:checked');
+      return c ? c.value : '';
+    }
+
+    /* ---------- form state ---------- */
+    let currentRegId = null;
+    function ensureRegId() {return currentRegId || 'FBGC-00000000-0000';}
+    function collectFormData() {
+      return {
+        registrationId: ensureRegId(),
+        name: $('donorName').value.trim().replace(/\s{2,}/g, ' '),
+        bloodGroup: getSelectedBloodGroup(),
+        phone: formatPhoneNumber($('donorPhone').value),
+        division: $('donorDivision').value,
+        district: $('donorDistrict').value,
+        upazila: $('donorUpazila').value,
+        age: $('donorAge').value.trim(),
+        gender: $('donorGender').value
+      };
+    }
+    function validateForm() {
+      const form = $('donorForm'), grid = $('bloodGrid');
+      let ok = !!getSelectedBloodGroup();
+      grid.classList.toggle('is-invalid', !ok);
+      if (!form.checkValidity()) ok = false;
+      form.classList.add('was-validated');
+      if (!ok) {
+        const bad = form.querySelector('.form-control:invalid,.form-select:invalid');
+        (bad && getSelectedBloodGroup() ? bad : grid).scrollIntoView({behavior: 'smooth', block: 'center'});
+      }
+      return ok;
+    }
+    function resetForm() {
+      const form = $('donorForm');
+      form.reset();
+      form.classList.remove('was-validated');
+      $('bloodGrid').classList.remove('is-invalid');
+      fillSelect($('donorDistrict'), [], 'জেলা নির্বাচন করুন');
+      fillSelect($('donorUpazila'), [], 'উপজেলা নির্বাচন করুন');
+      currentRegId = null;
+      updatePreview();
+      generateNextRegId().then(id => {currentRegId = id; updatePreview();});
+    }
+    function setLoading(on) {
+      const b = $('submitBtn');
+      b.disabled = on;
+      b.innerHTML = on ? '<span class="spinner-border spinner-border-sm me-2"></span>সংরক্ষণ হচ্ছে...' : '<i class="fas fa-check-circle me-2"></i>নিবন্ধন সম্পন্ন করুন';
+    }
+
+    /* ---------- stats / preview / recent ---------- */
+    const dayKey = new Date().toDateString();
+    let stats = {day: dayKey, reg: 0, saved: 0, printed: 0};
+    try {const s = JSON.parse(localStorage.getItem('rjf_fbg_stats') || 'null'); if (s && s.day === dayKey) stats = s;} catch (e) { }
+    const recent = [];
+
+    function countTo(el, to) {
+      const from = parseInt(el.dataset.v || '0', 10), t0 = performance.now();
+      el.dataset.v = to;
+      (function f(t) {
+        const p = Math.min((t - t0) / 700, 1), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = bn(Math.round(from + (to - from) * e));
+        if (p < 1) requestAnimationFrame(f);
+      })(t0);
+    }
+    function syncStats() {
+      countTo($('stReg'), stats.reg); countTo($('stSaved'), stats.saved); countTo($('stPrint'), stats.printed);
+      try {localStorage.setItem('rjf_fbg_stats', JSON.stringify(stats));} catch (e) { }
+    }
+    function renderRecent() {
+      $('recentList').innerHTML = recent.length ? recent.map(r =>
+        '<li><span class="bg">' + esc(r.bg) + '</span><div><b>' + esc(r.name) + '</b><small>' + esc(r.id) + ' • ' + esc(r.time) + '</small></div>' +
+        '<i class="fas ' + (r.saved ? 'fa-cloud-arrow-up ok' : 'fa-file-lines') + '"></i></li>').join('')
+        : '<li class="empty"><i class="fas fa-inbox fa-lg"></i>এখনও কোনো নিবন্ধন নেই</li>';
+    }
+    function recordEntry(d, saved) {
+      stats.reg++; if (saved) stats.saved++;
+      recent.unshift({
+        bg: d.bloodGroup, name: d.name, id: d.registrationId, saved: saved,
+        time: new Date().toLocaleTimeString('bn-BD', {hour: '2-digit', minute: '2-digit'})
+      });
+      if (recent.length > 20) recent.pop();
+      renderRecent(); syncStats();
+    }
+    let pvBarId = '';
+    function updatePreview() {
+      const d = collectFormData();
+      const ph = (id, v) => {const e = $(id); e.textContent = v || '—'; e.classList.toggle('ph', !v);};
+      ph('pvName', d.name); ph('pvPhone', d.phone);
+      ph('pvAge', [d.age && d.age + ' Y', d.gender].filter(Boolean).join(' / '));
+      ph('pvLoc', [d.upazila, d.district, d.division].filter(Boolean).join(', '));
+      $('pvId').textContent = d.registrationId;
+      const bgTxt = d.bloodGroup || '?';
+      if ($('pvBlood').textContent !== bgTxt) {
+        $('pvBlood').textContent = bgTxt;
+        const dr = $('pvDrop'); dr.classList.remove('bump'); void dr.offsetWidth; dr.classList.add('bump');
+      }
+      $('pvRh').textContent = d.bloodGroup ? d.bloodGroup.replace(/[+-]/, '') + ' • ' + (d.bloodGroup.includes('-') ? 'Negative' : 'Positive') : 'গ্রুপ নির্বাচন করুন';
+      if (pvBarId !== d.registrationId) {pvBarId = d.registrationId; $('pvBar').innerHTML = barcodeSvg(d.registrationId, 34);}
+      const age = +d.age;
+      const done = [d.name.length >= 2, /^01[3-9]\d{8}$/.test(d.phone), age >= 1 && age <= 120, !!d.gender, !!d.bloodGroup, !!d.division, !!d.district, !!d.upazila].filter(Boolean).length;
+      const pct = Math.round(done / 8 * 100);
+      $('progBar').style.width = pct + '%';
+      $('progBar').classList.toggle('done', pct === 100);
+      $('pctBadge').textContent = bn(pct) + '%';
+      countTo($('stProg'), pct);
+    }
+
+    /* ---------- report (A4 print) ---------- */
+    const C39 = {'0': 'nnnwwnwnn', '1': 'wnnwnnnnw', '2': 'nnwwnnnnw', '3': 'wnwwnnnnn', '4': 'nnnwwnnnw', '5': 'wnnwwnnnn', '6': 'nnwwwnnnn', '7': 'nnnwnnwnw', '8': 'wnnwnnwnn', '9': 'nnwwnnwnn', 'A': 'wnnnnwnnw', 'B': 'nnwnnwnnw', 'C': 'wnwnnwnnn', 'D': 'nnnnwwnnw', 'E': 'wnnnwwnnn', 'F': 'nnwnwwnnn', 'G': 'nnnnnwwnw', 'H': 'wnnnnwwnn', 'I': 'nnwnnwwnn', 'J': 'nnnnwwwnn', 'K': 'wnnnnnnww', 'L': 'nnwnnnnww', 'M': 'wnwnnnnwn', 'N': 'nnnnwnnww', 'O': 'wnnnwnnwn', 'P': 'nnwnwnnwn', 'Q': 'nnnnnnwww', 'R': 'wnnnnnwwn', 'S': 'nnwnnnwwn', 'T': 'nnnnwnwwn', 'U': 'wwnnnnnnw', 'V': 'nwwnnnnnw', 'W': 'wwwnnnnnn', 'X': 'nwnnwnnnw', 'Y': 'wwnnwnnnn', 'Z': 'nwwnwnnnn', '-': 'nwnnnnwnw', '*': 'nwnnwnwnn'};
+    function barcodeSvg(text, h) {
+      const s = '*' + String(text).toUpperCase().replace(/[^0-9A-Z-]/g, '') + '*';
+      let x = 0, r = '';
+      for (const ch of s) {
+        const p = C39[ch]; if (!p) continue;
+        for (let i = 0; i < 9; i++) {
+          const w = p[i] === 'w' ? 3 : 1;
+          if (i % 2 === 0) r += '<rect x="' + x + '" y="0" width="' + w + '" height="' + h + '"/>';
+          x += w;
+        }
+        x += 1;
+      }
+      return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + x + ' ' + h + '" preserveAspectRatio="none" width="250" height="' + h + '" fill="#000">' + r + '</svg>';
+    }
+    const pad2 = n => String(n).padStart(2, '0');
+    const fmtDate = d => pad2(d.getDate()) + '-' + pad2(d.getMonth() + 1) + '-' + d.getFullYear();
+    function fmtTime(d) {const h = d.getHours(); return pad2(h % 12 || 12) + ':' + pad2(d.getMinutes()) + ' ' + (h >= 12 ? 'PM' : 'AM');}
+
+    function openReport(rec) {
+      const win = window.open('', '_blank');
+      if (!win) {showToast('পপ-আপ ব্লক করা আছে। অনুগ্রহ করে পপ-আপ অনুমোদন করুন।', 'warning'); return;}
+      stats.printed++; syncStats();
+
+      const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=' + encodeURIComponent('https://roktojobafoundation.github.io/qr/');
+      const now = new Date(), today = fmtDate(now);
+      const _p2 = n => String(n).padStart(2, '0');
+      const _h = now.getHours();
+      const stamp = _p2(now.getDate()) + '/' + _p2(now.getMonth() + 1) + '/' + now.getFullYear() + '-' +
+        _p2(_h % 12 || 12) + ':' + _p2(now.getMinutes()) + ':' + _p2(now.getSeconds()) + ' ' + (_h >= 12 ? 'PM' : 'AM');
+      const bg = String(rec.bloodGroup || ''), abo = bg.replace(/[+-]/g, ''), rh = bg.indexOf('-') > -1 ? 'Negative' : 'Positive';
+      const ageSex = (rec.age ? rec.age + ' Year' : '') + (rec.age && rec.gender ? '-' : '') + (rec.gender || '');
+
+      const html = `<!DOCTYPE html>
+<html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blood Group Report — ${esc(rec.registrationId)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+@page{size:A4;margin:0}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#fff;color:#111;font-family:'Roboto','Hind Siliguri',Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet{width:210mm;min-height:297mm;padding:8mm 10mm 7mm;display:flex;flex-direction:column}
+.print-date{font-size:11px;margin-bottom:6px}
+.hdr{display:flex;align-items:center;gap:14px;padding-bottom:8px;border-bottom:1.5px solid #222}
+.hdr .logo{width:84px;height:84px;flex-shrink:0}.hdr .logo img{width:100%;height:100%;object-fit:contain;display:block}
+.hdr .org{flex:1;text-align:center}
+.t1{font-size:23px;font-weight:700;line-height:1.2}.t2{font-size:17px;font-weight:700;color:#b71c1c;margin-top:3px}.t3{font-size:11.5px;margin-top:4px}
+.hdr .qr{width:90px;text-align:center;flex-shrink:0}.hdr .qr img{width:82px;height:82px;display:block;margin:0 auto}.hdr .qr div{font-size:8.5px;font-weight:700;margin-top:2px}
+.title{margin-top:12px;text-align:center;background:#fdeaea;border:1.5px solid #f0a4a4;border-radius:12px;padding:10px 8px 9px}
+.title .bn{display:block;font-size:19px;font-weight:700;color:#8e0000;font-family:'Hind Siliguri',sans-serif}
+.title .en{display:block;font-size:11px;font-weight:700;letter-spacing:3px;color:#b71c1c;margin-top:4px}
+.pbox{margin-top:14px;border:1.5px solid #222;padding:6px 10px;display:flex;justify-content:space-between;gap:10px}
+.pbox table{border-collapse:collapse}.pbox td{font-size:13px;padding:1px 0;vertical-align:top;text-transform:uppercase}
+.pbox td.k{padding-right:18px;white-space:nowrap}.pbox td.b{font-weight:700}
+.pbox .left{flex:1.1}.pbox .right{flex:1}.pbox .barcode{margin-top:10px}
+.dept{text-align:center;font-weight:700;font-size:14px;margin-top:2px}
+.thead{display:flex;border-top:1.5px solid #222;border-bottom:1.5px solid #222;padding:3px 0;font-weight:700;font-size:13.5px;text-transform:uppercase}
+.c1{flex:0 0 44%}.c2{flex:0 0 16%;text-align:center}.c3{flex:0 0 14%}.c4{flex:1}
+.trow{display:flex;font-size:14px;padding:1px 0}.trow.head{font-weight:700;margin-top:10px}.trow .c1{font-weight:700}
+.notes{margin-top:18px;font-size:9.5px;line-height:1.9;color:#222}
+.end{text-align:center;font-weight:700;font-size:14px;margin-top:34px}
+.sign{margin-top:auto;padding-top:40px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.sign .auth{min-width:205px;text-align:center;border-top:1.5px solid #111;padding-top:4px;font-size:11px;font-weight:600;margin-right:4px}
+.sign .stamp{font-size:11px;font-weight:600;text-align:left;white-space:nowrap}
+.band{margin:14px -4mm 0;background:#fadcdc;color:#0b2a5b;text-align:center;padding:9px 8px 10px;font-weight:700}
+.band .a{font-size:12.5px}.band .b{font-size:9.5px;margin-top:4px}
+.pw{text-align:center;margin-top:10px;font-size:14px}.pw2{text-align:center;margin-top:5px;font-size:11px}
+@media print{html,body{width:210mm;height:297mm}}
+</style></head><body><div class="sheet">
+<div class="hdr">
+  <div class="logo"><img src="${LOGO_URL}" alt="Logo" onerror="this.style.visibility='hidden'"></div>
+  <div class="org"><div class="t1">Roktojoba Foundation</div><div class="t2">Free Blood Group Camp</div><div class="t3">Mobile: +880 1960-506601 | Email: roktojobafoundation@gmail.com</div></div>
+  <div class="qr"><img src="${qrUrl}" alt="QR"><div>More Info SCAN ME</div></div>
+</div>
+<div class="title"><span class="bn">BLOOD GROUP TEST REPORT</span></div>
+<div class="pbox">
+  <div class="left"><table>
+    <tr><td class="k">Patient ID</td><td class="b">${esc(rec.registrationId)}</td></tr>
+    <tr><td class="k">Patient Name</td><td class="b">${esc(rec.name)}</td></tr>
+    <tr><td class="k">Age / Sex</td><td>${esc(ageSex)}</td></tr>
+    <tr><td class="k">Mobile</td><td>${esc(rec.phone)}</td></tr>
+    <tr><td class="k">Specimen</td><td>Blood</td></tr>
+    <tr><td class="k">Refer By</td><td>Self</td></tr></table></div>
+  <div class="right"><table>
+    <tr><td class="k">Collected On</td><td>${today}</td></tr>
+    <tr><td class="k">Received On</td><td>${today}</td></tr>
+    <tr><td class="k">Reported On</td><td>${today}</td></tr></table>
+    <div class="barcode">${barcodeSvg(rec.registrationId, 46)}</div></div>
+</div>
+<div class="dept">[ SEROLOGY ]</div>
+<div class="thead"><div class="c1">Test Name</div><div class="c2">Result</div><div class="c3">Units</div><div class="c4">Normal Range</div></div>
+<div class="trow head"><div class="c1">Blood Group (ABO) &amp; Rh Titration</div></div>
+<div class="trow"><div class="c1">Blood Group</div><div class="c2">${esc(abo)}</div></div>
+<div class="trow"><div class="c1">Rh Titration</div><div class="c2">${rh}</div></div>
+<div class="notes">** Lab is not responsible for patient's identification .<br>Suggested :- Cross check and Cross matching must be done before Blood Transfusion.</div>
+<div class="end">---End Of The Report---</div>
+<div class="sign">
+  <div class="stamp">Print Date &amp; Time: ${esc(stamp)}</div>
+  <div class="auth">Authorized Signature</div>
+</div>
+<div class="band"><div class="a">Not For Medical Legal Purpose</div><div class="b">Please Correlate the Report with Clinical Findings as Test Reports are Subjected to Technical Limitations.</div></div>
+<div class="pw">Powered by <b>FT Innovation</b> &nbsp;|&nbsp; Our Medical Partner <b>Aurora Specialized Hospital Ltd.</b></div>
+<div class="pw2">Roktojoba Foundation - Free Blood Group Camp | Software Designed &amp; Developed by <b>MD. Tasrik Hossain</b></div>
+</div>
+<script>
+window.onload=function(){var r=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();r.then(function(){setTimeout(function(){window.focus();window.print();},700);});};
+<\/script></body></html>`;
+
+      win.document.open(); win.document.write(html); win.document.close();
+    }
+
+    /* ---------- success modal ---------- */
+    function showSuccess(data, saved) {
+      $('successRegId').textContent = data.registrationId;
+      $('successTitle').textContent = saved ? 'নিবন্ধন সফল হয়েছে!' : 'রিপোর্ট প্রস্তুত!';
+      $('successText').textContent = saved
+        ? 'রক্তদাতা হিসেবে নিবন্ধনের জন্য ধন্যবাদ। তথ্য ডাটাবেজে সংরক্ষিত হয়েছে। এখন রিপোর্ট প্রিন্ট করে রক্তদাতাকে প্রদান করুন।'
+        : 'ডাটাবেজে সংরক্ষণ বন্ধ ছিল, তাই কোনো তথ্য সংরক্ষিত হয়নি। শুধুমাত্র রিপোর্টটি তৈরি করা হয়েছে।';
+      new bootstrap.Modal($('successModal')).show();
+      recordEntry(data, saved);
+      setTimeout(resetForm, 400);
+    }
+
+    /* ---------- init ---------- */
+    let lastRecord = null;
+    document.addEventListener('DOMContentLoaded', function () {
+      const tick = () => {
+        const n = new Date();
+        $('currentDate').textContent = n.toLocaleDateString('bn-BD', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+        $('currentTime').textContent = n.toLocaleTimeString('bn-BD', {hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true});
+      };
+      tick(); setInterval(tick, 1000);
+
+      initFirebase(); renderBloodChips(); populateDivisions(); renderRecent(); syncStats(); updatePreview();
+      generateNextRegId().then(id => {currentRegId = id; updatePreview();});
+
+      $('donorDivision').addEventListener('change', function () {updateDistricts(this.value);});
+      $('donorDistrict').addEventListener('change', function () {updateUpazilas($('donorDivision').value, this.value);});
+      $('bloodGrid').addEventListener('change', function () {this.classList.remove('is-invalid');});
+      $('donorPhone').addEventListener('input', function () {this.value = this.value.replace(/\D/g, '').slice(0, 11);});
+      /* নামে শুধু ইংরেজি বর্ণ (A-Z) ও একক স্পেস */
+      const nameInput = $('donorName');
+      const cleanName = v => v.replace(/[^A-Za-z ]/g, '').replace(/\s{2,}/g, ' ').replace(/^\s+/, '');
+      nameInput.addEventListener('input', function () {
+        const caret = this.selectionStart ?? this.value.length;
+        const cleanedCaret = cleanName(this.value.slice(0, caret)).length;
+        const cleaned = cleanName(this.value);
+        if (cleaned !== this.value) {
+          this.value = cleaned;
+          this.setSelectionRange(cleanedCaret, cleanedCaret);
+        }
+      });
+      nameInput.addEventListener('blur', function () {
+        this.value = this.value.trim().replace(/\s{2,}/g, ' ');
+      });
+
+      const form = $('donorForm');
+      form.addEventListener('input', updatePreview);
+      form.addEventListener('change', updatePreview);
+
+      const toggle = $('saveToggle'), card = $('dbToggleCard');
+      const syncToggle = () => {
+        card.classList.toggle('on', toggle.checked);
+        card.classList.toggle('off', !toggle.checked);
+        $('dbSubText').textContent = toggle.checked ? 'চালু — তথ্য ডাটাবেজে সংরক্ষিত হবে' : 'বন্ধ — তথ্য কোথাও সংরক্ষণ হবে না';
+      };
+      toggle.addEventListener('change', syncToggle); syncToggle();
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (!validateForm()) return;
+        if (!currentRegId) currentRegId = await generateNextRegId();
+        const data = collectFormData();
+        if (!toggle.checked) {lastRecord = data; showSuccess(data, false); return;}
+        if (!firebaseReady) {showError('ডাটাবেজে সংযোগ নেই। ইন্টারনেট পরীক্ষা করুন অথবা টগল বন্ধ করে শুধু রিপোর্ট তৈরি করুন।'); return;}
+
+        setLoading(true);
+        try {
+          const col = fb.collection(fb.db, COLLECTION_NAME);
+          const snap = await fb.getDocs(fb.query(col, fb.where('phone', '==', data.phone)));
+          if (!snap.empty) {
+            setLoading(false);
+            showError('এই মোবাইল নম্বর (' + data.phone + ') দিয়ে ইতিমধ্যে একজন রক্তদাতা নিবন্ধিত আছেন।');
+            return;
+          }
+          await fb.addDoc(col, {
+            registrationId: data.registrationId, name: data.name, bloodGroup: data.bloodGroup, phone: data.phone,
+            division: data.division, district: data.district, upazila: data.upazila,
+            lastDonation: '', totalDonations: 0, registrationDate: new Date().toISOString(), createdAt: new Date(),
+            status: 'active', availability: 'available', source: 'Free Blood Group Camp', age: data.age, gender: data.gender
+          });
+          setLoading(false);
+          lastRecord = data;
+          showSuccess(data, true);
+        } catch (err) {
+          console.error(err);
+          setLoading(false);
+          showError('সংরক্ষণে ত্রুটি: ' + (err.message || err));
+        }
+      });
+
+      $('reportBtn').addEventListener('click', async function () {
+        if (!validateForm()) return;
+        if (!currentRegId) currentRegId = await generateNextRegId();
+        lastRecord = collectFormData();
+        openReport(lastRecord);
+      });
+      $('printFromModal').addEventListener('click', function () {
+        const m = bootstrap.Modal.getInstance($('successModal')); if (m) m.hide();
+        if (lastRecord) setTimeout(() => openReport(lastRecord), 260);
+      });
+      $('reportFromError').addEventListener('click', function () {
+        const m = bootstrap.Modal.getInstance($('errorModal')); if (m) m.hide();
+        if (form.checkValidity() && getSelectedBloodGroup()) {
+          lastRecord = collectFormData();
+          setTimeout(() => openReport(lastRecord), 260);
+        }
+      });
+
+      /* button ripple */
+      document.addEventListener('click', function (e) {
+        const b = e.target.closest('.btn'); if (!b) return;
+        const r = b.getBoundingClientRect(), s = document.createElement('span'), z = Math.max(r.width, r.height);
+        s.className = 'rip';
+        s.style.cssText = 'width:' + z + 'px;height:' + z + 'px;left:' + (e.clientX - r.left - z / 2) + 'px;top:' + (e.clientY - r.top - z / 2) + 'px';
+        b.appendChild(s); setTimeout(() => s.remove(), 600);
+      });
+    });
+  </script>
+</body>
+
+</html>
