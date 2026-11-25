@@ -1757,7 +1757,7 @@ async function printPatientPrescription(patient) {
                         <div class="addr">Matlab (North), Chandpur. | Mobile: +880 1960-506601 | Email: roktojobafoundation@gmail.com</div>
                     </div>
                     <div class="header-right">
-                        <img class="qr-img" src="${auroralogoUrl}" alt="Aurora Logo">
+                        <img class="logo-img" src="${auroralogoUrl}" alt="Aurora Logo">
                     </div>
                 </div>
 
