@@ -1483,7 +1483,7 @@ async function printPatientPrescription(patient) {
     }
 
     const logoUrl = new URL('assets/logo.png', window.location.href).href;
-    const auroralogoUrl = new URL('assets/Aurora Logo.webp', window.location.href).href;
+    const auroralogoUrl = new URL('assets/Aurora-Logo.png', window.location.href).href;
 
     // ── Print Date & Time: DD/MM/YYYY - HH:MM:SS AM/PM ──────────
     const now = new Date();
