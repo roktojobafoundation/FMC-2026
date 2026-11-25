@@ -1483,7 +1483,7 @@ async function printPatientPrescription(patient) {
     }
 
     const logoUrl = new URL('assets/logo.png', window.location.href).href;
-    const auroralogoUrl = new URL('assets/Aurora Logo.webp', window.location.href).href;
+    const auroralogoUrl = new URL('assets/Aurora Logo.WEBP', window.location.href).href;
 
     // ── Print Date & Time: DD/MM/YYYY - HH:MM:SS AM/PM ──────────
     const now = new Date();
@@ -1731,10 +1731,11 @@ async function printPatientPrescription(patient) {
                 }
                 .footer-text .note {
                     font-family: 'Noto Sans Bengali', sans-serif;
-                    font-size: 12.5px; font-weight: 500;
+                    font-size: 14px; font-weight: 500;
                 }
                 .footer-text .note strong { font-weight: 700; }
-                .footer-text .printed { font-size: 10.5px; margin-top: 4px; }
+                .footer-text .sponsor { font-size: 12px; margin-top: 2px; }
+                .footer-text .printed { font-size: 10.5px; margin-top: 2px; }
 
                 html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 @media print { html, body { width: 210mm; height: 297mm; } }
@@ -1771,7 +1772,7 @@ async function printPatientPrescription(patient) {
                     <div class="info-row">
                         <div class="col-left">
                             <div><strong>Patient ID :</strong> ${esc(patient.registrationId)}</div>
-                            <div><strong>Name :</strong> ${esc(patient.fullName)}</div>
+                            <div><strong>Patient Name :</strong> ${esc(patient.fullName)}</div>
                             <div><strong>Age / Gender :</strong> ${esc(patient.age)} - ${esc(patient.gender)}</div>
                             <div><strong>Blood Group :</strong> ${esc(patient.bloodGroup)}</div>
                             <div><strong>Mobile No :</strong> ${esc(patient.phone)}</div>
@@ -1839,8 +1840,8 @@ async function printPatientPrescription(patient) {
                         <div class="qr-label">More info SCAN ME</div>
                     </div>
                     <div class="footer-text">
-                        <div class="note"><strong>বিঃ দ্রঃ</strong> পরবর্তী ভিজিটের জন্য নিবন্ধন কার্ডটি অবশ্যই যত্ন সহকারে সংরক্ষন করে রাখুন।</div>
-                        <div class="note">Powered by <strong>FT Innovation</strong> | Our Medical Partnar <strong>Aurora Specialized Hospital Ltd.</strong></div>
+                        <div class="note"><strong>বিঃ দ্রঃ</strong> পরবর্তী ভিজিটের জন্য নিবন্ধন কার্ডটি অবশ্যই যত্ন সহকারে সংরক্ষন করে রাখুন। <strong>ধন্যবাদ</strong></div>
+                        <div class="sponsor">Powered by <strong>FT Innovation</strong> | Our Medical Partnar <strong>Aurora Specialized Hospital Ltd.</strong></div>
                         <div class="printed">Roktojoba Foundation - Free Medical Camp | Software Designed & Developed by <strong>MD. Tasrik Hossain</strong></div>
                     </div>
                 </div>
