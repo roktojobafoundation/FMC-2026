@@ -1444,7 +1444,8 @@ function formatPrescriptionDateTime(value) {
 }
 
 // Print Patient Prescription (A4) — Investigation higher + bigger gap to Diagnosis
-function printPatientPrescription(patient) {
+async function printPatientPrescription(patient) {
+    // Popup with user gesture so it won't be blocked
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         showAlert('Please allow pop-ups to print the prescription', 'warning');
@@ -1459,9 +1460,40 @@ function printPatientPrescription(patient) {
         printedBy = authData.displayName || (authData.email ? authData.email.split('@')[0] : 'Admin');
     } catch (e) { /* keep default */ }
 
-    const logoUrl = new URL('assets/logo.png', window.location.href).href;
+    // ── Doctor details (Name, Specialization, Hospital, BMDC, Phone) ──
+    let doctorName = patient.assignedDoctor || 'Not assigned';
+    let doctorSpecialization = '';
+    let doctorHospital = 'N/A';
+    let doctorRegNumber = 'N/A';
+    let doctorPhone = 'N/A';
 
-    const printDate = formatPrescriptionDateTime(new Date());
+    if (patient.assignedDoctorId) {
+        try {
+            const doctorDoc = await db.collection('doctors').doc(patient.assignedDoctorId).get();
+            if (doctorDoc.exists) {
+                const docData = doctorDoc.data();
+                doctorSpecialization = docData.specialization || '';
+                doctorHospital = docData.hospital || 'N/A';
+                doctorRegNumber = docData.registrationNumber || 'N/A';
+                doctorPhone = docData.phone || 'N/A';
+            }
+        } catch (e) {
+            console.warn('Could not fetch doctor details:', e);
+        }
+    }
+
+    const logoUrl = new URL('assets/logo.png', window.location.href).href;
+    const auroralogoUrl = new URL('assets/Aurora Logo.WEBP', window.location.href).href;
+
+    // ── Print Date & Time: DD/MM/YYYY - HH:MM:SS AM/PM ──────────
+    const now = new Date();
+    const padN = n => String(n).padStart(2, '0');
+    let printHours = now.getHours();
+    const printAmpm = printHours >= 12 ? 'PM' : 'AM';
+    printHours = printHours % 12 || 12;
+    const printDate = `${padN(now.getDate())}/${padN(now.getMonth() + 1)}/${now.getFullYear()} - ` +
+                      `${padN(printHours)}:${padN(now.getMinutes())}:${padN(now.getSeconds())} ${printAmpm}`;
+
     const visitDate = formatPrescriptionDateTime(patient.registrationDate);
 
     const barcode = buildCode128Svg(patient.registrationId, 40);
@@ -1532,9 +1564,9 @@ function printPatientPrescription(patient) {
                 .logo .drop { color: #e63946; font-size: 26px; line-height: 1; }
                 .logo .abbr { font-weight: 700; font-size: 13px; color: #1d3557; letter-spacing: 1px; }
                 .org { flex: 1; text-align: center; }
-                .org h1 { margin: 0; font-size: 26px; font-weight: 700; color: #111; }
-                .org .bn { font-family: 'Noto Sans Bengali', sans-serif; font-size: 15px; font-weight: 600; margin-top: 2px; }
-                .org .addr { font-size: 12px; margin-top: 3px; color: #222; }
+                .org h1 { margin: 0; font-size: 21px; font-weight: 700; color: #000000; }
+                .org .bn { font-family: 'Noto Sans Bengali', sans-serif; font-size: 18px; font-weight: 500; margin-top: 2px; }
+                .org .addr { font-size: 11px; margin-top: 3px; color: #222; }
                 .qr-img { width: 82px; height: 82px; display: block; }
                 .qr-label { font-size: 8.5px; font-weight: 700; text-align: center; margin-top: 2px; letter-spacing: 0.3px; color: #111; }
 
@@ -1552,15 +1584,15 @@ function printPatientPrescription(patient) {
                 .title-row .barcode {
                     width: 240px; flex-shrink: 0;
                     display: flex; flex-direction: column;
-                    align-items: flex-start;        
-                    justify-content: flex-start;    
+                    align-items: flex-start;
+                    justify-content: flex-start;
                 }
 
                 .title-row .barcode .bc-label {
                     font-size: 10px; font-weight: 500;
                     margin-top: 2px; letter-spacing: 0.6px;
                     font-family: 'Roboto', Arial, sans-serif;
-                    text-align: left; 
+                    text-align: left;
                 }
 
                 /* Patient info */
@@ -1576,6 +1608,26 @@ function printPatientPrescription(patient) {
                 .info .col-left { flex: 1.2; min-width: 0; }
                 .info .col-right { flex: 1; }
                 .info strong { font-weight: 700; }
+
+                /* ── Doctor block: Name + Specialization below ── */
+                .doctor-block {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 3px;
+                }
+                .doctor-block strong { flex-shrink: 0; }
+                .doctor-block .doctor-values {
+                    flex: 1;
+                    min-width: 0;
+                }
+                .doctor-specialization {
+                    font-size: 12px;
+                    color: #000000;
+                    font-style: italic;
+                    line-height: 1.25;
+                    margin-top: 0;
+                    margin-bottom: 0;
+                }
 
                 .info .address-line {
                     white-space: nowrap;
@@ -1604,12 +1656,6 @@ function printPatientPrescription(patient) {
                 .label-cc, .label-rx { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
                 .cc-line { font-size: 12.5px; line-height: 1.5; margin-bottom: 4px; word-break: break-word; }
 
-                /* ═══ LEFT COLUMN ═══
-                   flex ratio: top : mid : bottom = 1 : 0.10 : 0.90
-                   → middle group stays centered
-                   → Investigation pulled way UP
-                   → big gap between Investigation & Diagnosis
-                */
                 .body .left {
                     display: flex;
                     flex-direction: column;
@@ -1620,15 +1666,15 @@ function printPatientPrescription(patient) {
                     flex-shrink: 0;
                     padding: 4px 0;
                 }
-                .flex-spacer-mid    { flex: 0.10;  min-height: 2px; }   /* ↓ ছিল 0.40 → Investigation আরও উপরে */
+                .flex-spacer-mid    { flex: 0.10;  min-height: 2px; }
                 .cc-bottom          { flex-shrink: 0; }
-                .flex-spacer-bottom { flex: 0.90;  min-height: 8px; }   /* ↑ ছিল 0.60 → middle centered রাখার জন্য */
+                .flex-spacer-bottom { flex: 0.90;  min-height: 8px; }
 
                 .section-label {
                     font-weight: 700; font-size: 13px;
                     margin-top: 6px; margin-bottom: 4px;
                 }
-                .investigation-space { height: 100px; }   /* ↑ ছিল 34px → Investigation↔Diagnosis মাঝে অনেক ফাঁকা */
+                .investigation-space { height: 100px; }
                 .diagnosis-space { height: 30px; }
 
                 /* RIGHT column — Rx + Physician signature */
@@ -1652,14 +1698,43 @@ function printPatientPrescription(patient) {
                     text-align: center;
                 }
 
-                /* Footer */
-                .rx-footer { text-align: center; padding-top: 8px; }
-                .rx-footer .note {
+                /* Footer — QR at bottom-left + centered text */
+                .rx-footer {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding-top: 8px;
+                }
+                .footer-qr {
+                    flex-shrink: 0;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .footer-qr .qr-img {
+                    width: 60px;
+                    height: 60px;
+                    display: block;
+                }
+                .footer-qr .qr-label {
+                    font-size: 6.5px;
+                    font-weight: 700;
+                    text-align: center;
+                    margin-top: 1px;
+                    letter-spacing: 0.2px;
+                    color: #111;
+                    white-space: nowrap;
+                }
+                .footer-text {
+                    flex: 1;
+                    text-align: center;
+                }
+                .footer-text .note {
                     font-family: 'Noto Sans Bengali', sans-serif;
                     font-size: 12.5px; font-weight: 500;
                 }
-                .rx-footer .note strong { font-weight: 700; }
-                .rx-footer .printed { font-size: 10.5px; margin-top: 4px; }
+                .footer-text .note strong { font-weight: 700; }
+                .footer-text .printed { font-size: 10.5px; margin-top: 4px; }
 
                 html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 @media print { html, body { width: 210mm; height: 297mm; } }
@@ -1677,35 +1752,41 @@ function printPatientPrescription(patient) {
                         </div>
                     </div>
                     <div class="org">
-                        <h1>Roktojoba Foundation | রক্তজবা ফাউন্ডেশন</h1>
+                        <h1>Roktojoba Foundation |  Aurora Specialized Hospital</h1>
                         <div class="bn">Free Medical Camp</div>
-                        <div class="addr">Mobile: +880 1960-506601 | Email: roktojobafoundation@gmail.com</div>
+                        <div class="addr">Matlab (North), Chandpur. | Mobile: +880 1960-506601 | Email: roktojobafoundation@gmail.com</div>
                     </div>
                     <div class="header-right">
-                        <img class="qr-img" src="${qrUrl}" alt="QR Code">
-                        <div class="qr-label">More Info SCAN ME</div>
+                        <img class="qr-img" src="${auroralogoUrl}" alt="Aurora Logo">
                     </div>
                 </div>
 
                 <div class="title-row">
-                    <div class="barcode">${barcode}</div>
+                    <div class="date"><strong>Date :</strong> ${esc(printDate)}</div>
                     <div class="title"> Patient Prescription</div>
-                    <div class="date"><strong>Print Date &amp; Time:</strong> ${esc(printDate)}</div>
+                    <div class="barcode">${barcode}</div>
                 </div>
 
                 <div class="info">
                     <div class="info-row">
                         <div class="col-left">
+                            <div><strong>Patient ID :</strong> ${esc(patient.registrationId)}</div>
                             <div><strong>Name :</strong> ${esc(patient.fullName)}</div>
-                            <div><strong>Gender :</strong> ${esc(patient.gender)}</div>
-                            <div><strong>Age :</strong> ${esc(patient.age)}</div>
+                            <div><strong>Age / Gender :</strong> ${esc(patient.age)} - ${esc(patient.gender)}</div>
+                            <div><strong>Blood Group :</strong> ${esc(patient.bloodGroup)}</div>
                             <div><strong>Mobile No :</strong> ${esc(patient.phone)}</div>
                         </div>
                         <div class="col-right">
-                            <div><strong>Patient ID :</strong> ${esc(patient.registrationId)}</div>
-                            <div><strong>Doctor :</strong> ${esc(patient.assignedDoctor)}</div>
-                            <div><strong>Blood Group :</strong> ${esc(patient.bloodGroup)}</div>
-                            <div><strong>Reg. Date &amp; Time :</strong> ${esc(visitDate)}</div>
+                            <div class="doctor-block">
+                                <strong>Doctor :</strong>
+                                <div class="doctor-values">
+                                    <div>${esc(doctorName)}</div>
+                                    ${doctorSpecialization ? `<div class="doctor-specialization">${esc(doctorSpecialization)}</div>` : ''}
+                                </div>
+                            </div>
+                            <div><strong>Hospital :</strong> ${esc(doctorHospital)}</div>
+                            <div><strong>BMDC Reg. No :</strong> ${esc(doctorRegNumber)}</div>
+                            <div><strong>Doctor Ass. Phone No :</strong> ${esc(doctorPhone)}</div>
                         </div>
                     </div>
                     <div class="address-line" id="addressLine"><strong>Address :</strong> ${esc(patient.address)}</div>
@@ -1733,9 +1814,9 @@ function printPatientPrescription(patient) {
                             <div class="flex-spacer-mid"></div>
 
                             <div class="cc-bottom">
-                                <div class="section-label">Investigation:</div>
-                                <div class="investigation-space"></div>
                                 <div class="section-label">Diagnosis:</div>
+                                <div class="investigation-space"></div>
+                                <div class="section-label">Investigation:</div>
                                 <div class="diagnosis-space"></div>
                             </div>
 
@@ -1753,8 +1834,15 @@ function printPatientPrescription(patient) {
                 </div>
 
                 <div class="rx-footer">
-                    <div class="note">Powered by <strong>FT Innovation</strong> | Our Medical Partner <strong>Aurora Specialized Hospital Ltd.</strong></div>
-                    <div class="printed">Roktojoba Foundation - Free Medical Camp | Software Designed & Developed by <strong>MD. Tasrik Hossain</strong></div>
+                    <div class="footer-qr">
+                        <img class="qr-img" src="${qrUrl}" alt="QR Code">
+                        <div class="qr-label">More info SCAN ME</div>
+                    </div>
+                    <div class="footer-text">
+                        <div class="note"><strong>বিঃ দ্রঃ</strong> পরবর্তী ভিজিটের জন্য নিবন্ধন কার্ডটি অবশ্যই যত্ন সহকারে সংরক্ষন করে রাখুন।</div>
+                        <div class="note">Powered by <strong>FT Innovation</strong> | Our Medical Partnar <strong>Aurora Specialized Hospital Ltd.</strong></div>
+                        <div class="printed">Roktojoba Foundation - Free Medical Camp | Software Designed & Developed by <strong>MD. Tasrik Hossain</strong></div>
+                    </div>
                 </div>
             </div>
 
@@ -2066,172 +2154,461 @@ function showAddVolunteerModal() {
             <button class="modal-close">&times;</button>
         </div>
         <div class="modal-body">
-            <form id="addVolunteerForm" class="modal-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Full Name *</label>
-                        <input type="text" class="form-control" id="volunteerName" required>
+            <form id="volunteerRegistrationForm">
+                <!-- Step 1: Personal Information -->
+                <div class="form-step active" id="step1">
+                    <h3 class="section-subtitle" style="text-align: left; margin: 0 0 20px;">Personal Information</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="volunteerName" class="form-label">Full Name *</label>
+                            <input type="text" id="volunteerName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="volunteerAge" class="form-label">Age *</label>
+                            <input type="number" id="volunteerAge" class="form-control" min="18" max="70" required>
+                        </div>
                     </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="volunteerGender" class="form-label">Gender *</label>
+                            <select id="volunteerGender" class="form-control" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="volunteerPhone" class="form-label">Phone Number *</label>
+                            <input type="tel" id="volunteerPhone" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="volunteerEmail" class="form-label">Email Address</label>
+                            <input type="email" id="volunteerEmail" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="volunteerEmergencyContact" class="form-label">Emergency Contact *</label>
+                            <input type="tel" id="volunteerEmergencyContact" class="form-control" required>
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <label class="form-label">Age *</label>
-                        <input type="number" class="form-control" id="volunteerAge" min="18" max="70" required>
+                        <label for="volunteerAddress" class="form-label">Full Address *</label>
+                        <textarea id="volunteerAddress" class="form-control" rows="2" required></textarea>
+                    </div>
+
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-primary next-step" data-next="step2">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
-                
-                <div class="form-row">
+
+                <!-- Step 2: Background Information -->
+                <div class="form-step" id="step2">
+                    <h3 class="section-subtitle" style="text-align: left; margin: 0 0 20px;">Background Information</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="volunteerOccupation" class="form-label">Education/Profession</label>
+                            <input type="text" id="volunteerOccupation" class="form-control"
+                                placeholder="Student, Teacher, Business, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label for="volunteerEducation" class="form-label">Education Level</label>
+                            <select id="volunteerEducation" class="form-control">
+                                <option value="">Select Education</option>
+                                <option value="High School">High School</option>
+                                <option value="College">College</option>
+                                <option value="Bachelor's Degree">Bachelor's Degree</option>
+                                <option value="Master's Degree">Master's Degree</option>
+                                <option value="Doctorate">Doctorate</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <label class="form-label">Gender *</label>
-                        <select class="form-control" id="volunteerGender" required>
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
+                        <label for="volunteerSkills" class="form-label">Skills & Qualifications</label>
+                        <textarea id="volunteerSkills" class="form-control" rows="3"
+                            placeholder="Medical knowledge, First aid training, Language skills, etc."></textarea>
+                        <small class="form-text">List any skills that might be useful for the medical camp</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="previousExperience" class="form-label">Previous Volunteer Experience</label>
+                        <textarea id="previousExperience" class="form-control" rows="3"
+                            placeholder="Describe any previous volunteer work or similar experience"></textarea>
+                    </div>
+
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-secondary prev-step" data-prev="step1">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-next="step3">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Preferences -->
+                <div class="form-step" id="step3">
+                    <h3 class="section-subtitle" style="text-align: left; margin: 0 0 20px;">Volunteer Preferences</h3>
+
+                    <div class="form-group">
+                        <label for="preferredArea" class="form-label">Preferred Volunteer Area *</label>
+                        <select id="preferredArea" class="form-control" required>
+                            <option value="">Select preferred area</option>
+                            <option value="registration">Registration Desk</option>
+                            <option value="crowd_control">Crowd Control & Guidance</option>
+                            <option value="patient_support">Patient Support & Assistance</option>
+                            <option value="medicine_distribution">Medicine Distribution</option>
+                            <option value="food_water">Food & Water Distribution</option>
+                            <option value="cleanup">Cleanup & Maintenance</option>
+                            <option value="transportation">Patient Transportation</option>
+                            <option value="other">Anywhere Needed</option>
                         </select>
                     </div>
+
                     <div class="form-group">
-                        <label class="form-label">Phone Number *</label>
-                        <input type="tel" class="form-control" id="volunteerPhone" required>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" id="volunteerEmail">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Address *</label>
-                    <textarea class="form-control" id="volunteerAddress" rows="2" required></textarea>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Education/Profession</label>
-                        <input type="text" class="form-control" id="volunteerEducation">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Emergency Contact</label>
-                        <input type="tel" class="form-control" id="volunteerEmergencyContact">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Preferred Area *</label>
-                    <select class="form-control" id="volunteerArea" required>
-                        <option value="">Select Preferred Area</option>
-                        <option value="Registration">Registration Desk</option>
-                        <option value="Reception">Reception</option>
-                        <option value="Waiting Area">Waiting Area Management</option>
-                        <option value="Pharmacy">Pharmacy Assistance</option>
-                        <option value="Food">Food Distribution</option>
-                        <option value="Crowd Control">Crowd Control</option>
-                        <option value="Transport">Patient Transport</option>
-                        <option value="Medical Assistance">Medical Assistance</option>
-                        <option value="Admin Support">Admin Support</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Previous Experience</label>
-                        <select class="form-control" id="volunteerExperience">
-                            <option value="None">No Experience</option>
-                            <option value="Beginner">Beginner (1-2 events)</option>
-                            <option value="Intermediate">Intermediate (3-5 events)</option>
-                            <option value="Experienced">Experienced (5+ events)</option>
+                        <label for="volunteerAvailability" class="form-label">Availability *</label>
+                        <select id="volunteerAvailability" class="form-control" required>
+                            <option value="">Select availability</option>
+                            <option value="full_day">Full Day (8 AM - 5 PM)</option>
+                            <option value="morning">Morning Shift (8 AM - 1 PM)</option>
+                            <option value="afternoon">Afternoon Shift (1 PM - 5 PM)</option>
+                            <option value="flexible">Flexible - Any Shift</option>
                         </select>
                     </div>
+
                     <div class="form-group">
-                        <label class="form-label">Available Hours *</label>
-                        <select class="form-control" id="volunteerHours" required>
-                            <option value="">Select Hours</option>
-                            <option value="4">4 Hours</option>
-                            <option value="6">6 Hours</option>
-                            <option value="8">8 Hours (Full Day)</option>
-                        </select>
+                        <label class="form-label">T-shirt Size</label>
+                        <div class="size-options">
+                            <label class="size-option">
+                                <input type="radio" name="tshirtSize" value="S">
+                                <span>S</span>
+                            </label>
+                            <label class="size-option">
+                                <input type="radio" name="tshirtSize" value="M">
+                                <span>M</span>
+                            </label>
+                            <label class="size-option">
+                                <input type="radio" name="tshirtSize" value="L">
+                                <span>L</span>
+                            </label>
+                            <label class="size-option">
+                                <input type="radio" name="tshirtSize" value="XL">
+                                <span>XL</span>
+                            </label>
+                            <label class="size-option">
+                                <input type="radio" name="tshirtSize" value="XXL">
+                                <span>XXL</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="additionalInfo" class="form-label">Additional Information</label>
+                        <textarea id="additionalInfo" class="form-control" rows="3"
+                            placeholder="Any other information you'd like to share..."></textarea>
+                    </div>
+
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-secondary prev-step" data-prev="step2">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+                        <button type="button" class="btn btn-primary next-step" data-next="step4">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Special Skills/Notes</label>
-                    <textarea class="form-control" id="volunteerSkills" rows="2"></textarea>
+
+                <!-- Step 4: Review & Submit -->
+                <div class="form-step" id="step4">
+                    <h3 class="section-subtitle" style="text-align: left; margin: 0 0 20px;">Review & Submit</h3>
+
+                    <div class="review-summary">
+                        <h4>Please review your information:</h4>
+
+                        <div class="review-section">
+                            <h5>Personal Information</h5>
+                            <div class="review-row">
+                                <span class="review-label">Full Name:</span>
+                                <span class="review-value" id="reviewName"></span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Age & Gender:</span>
+                                <span class="review-value" id="reviewAgeGender"></span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Phone:</span>
+                                <span class="review-value" id="reviewPhone"></span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Email:</span>
+                                <span class="review-value" id="reviewEmail"></span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Address:</span>
+                                <span class="review-value" id="reviewAddress"></span>
+                            </div>
+                        </div>
+
+                        <div class="review-section">
+                            <h5>Background Information</h5>
+                            <div class="review-row">
+                                <span class="review-label">Occupation:</span>
+                                <span class="review-value" id="reviewOccupation"></span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Education:</span>
+                                <span class="review-value" id="reviewEducation"></span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Skills:</span>
+                                <span class="review-value" id="reviewSkills"></span>
+                            </div>
+                        </div>
+
+                        <div class="review-section">
+                            <h5>Volunteer Preferences</h5>
+                            <div class="review-row">
+                                <span class="review-label">Preferred Area:</span>
+                                <span class="review-value" id="reviewArea"></span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">Availability:</span>
+                                <span class="review-value" id="reviewAvailability"></span>
+                            </div>
+                            <div class="review-row">
+                                <span class="review-label">T-shirt Size:</span>
+                                <span class="review-value" id="reviewTshirtSize"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" id="termsAgreement" class="form-check-input" required>
+                            <label for="termsAgreement" class="form-check-label">
+                                I agree to the terms and conditions of volunteering *
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="healthDeclaration" class="form-check-input" required>
+                            <label for="healthDeclaration" class="form-check-label">
+                                I declare that I am in good health and able to perform volunteer duties *
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="photoConsent" class="form-check-input">
+                            <label for="photoConsent" class="form-check-label">
+                                I consent to photographs/videos being taken during the event
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-secondary prev-step" data-prev="step3">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitVolunteerBtn">
+                            <i class="fas fa-check-circle"></i> Add Volunteer
+                        </button>
+                    </div>
                 </div>
-                
-                <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="volunteerCheckedIn">
-                    <label class="form-check-label" for="volunteerCheckedIn">Checked In</label>
-                </div>
+
+                <!-- Compatibility fields for existing addNewVolunteer() -->
+                <input type="hidden" id="volunteerArea">
+                <input type="hidden" id="volunteerHours">
+                <input type="hidden" id="volunteerExperience">
+                <input type="checkbox" id="volunteerCheckedIn" style="display:none;">
             </form>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary close-modal">Cancel</button>
-            <button class="btn btn-primary" id="submitVolunteerBtn">Add Volunteer</button>
         </div>
     `;
 
     showModal(modalContent);
 
-    // Add event listeners
-    document.querySelector('.close-modal').addEventListener('click', closeModal);
+    // Close handlers
+    const closeBtn = document.querySelector('.close-modal');
+    const modalCloseBtn = document.querySelector('.modal-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
 
-    document.getElementById('submitVolunteerBtn').addEventListener('click', async function () {
-        await addNewVolunteer();
+    const form = document.getElementById('volunteerRegistrationForm');
+    const steps = form.querySelectorAll('.form-step');
+
+    function showStep(stepId) {
+        steps.forEach(step => step.classList.remove('active'));
+        const target = document.getElementById(stepId);
+        if (target) target.classList.add('active');
+    }
+
+    function validateStep(stepEl) {
+        let valid = true;
+        stepEl.querySelectorAll('[required]').forEach(field => {
+            if (!field.checkValidity()) {
+                field.reportValidity();
+                valid = false;
+            }
+        });
+        return valid;
+    }
+
+    // Next buttons
+    form.querySelectorAll('.next-step').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const currentStep = btn.closest('.form-step');
+            if (!validateStep(currentStep)) return;
+
+            const nextId = btn.dataset.next;
+            if (nextId === 'step4') populateReview();
+            showStep(nextId);
+        });
     });
-}
 
-// Add New Volunteer to Firestore
-async function addNewVolunteer() {
-    const form = document.getElementById('addVolunteerForm');
+    // Previous buttons
+    form.querySelectorAll('.prev-step').forEach(btn => {
+        btn.addEventListener('click', () => {
+            showStep(btn.dataset.prev);
+        });
+    });
+
+    // Populate the review step
+    function populateReview() {
+        const val = id => (document.getElementById(id)?.value || '').trim();
+        const selectedText = id => {
+            const el = document.getElementById(id);
+            return el && el.selectedIndex >= 0 ? el.options[el.selectedIndex].text : '';
+        };
+
+        document.getElementById('reviewName').textContent = val('volunteerName') || '-';
+
+        const age = val('volunteerAge');
+        const gender = val('volunteerGender');
+        document.getElementById('reviewAgeGender').textContent =
+            (age ? age + ' years' : '-') + (gender ? ', ' + gender : '');
+
+        document.getElementById('reviewPhone').textContent = val('volunteerPhone') || '-';
+        document.getElementById('reviewEmail').textContent = val('volunteerEmail') || '-';
+        document.getElementById('reviewAddress').textContent = val('volunteerAddress') || '-';
+        document.getElementById('reviewOccupation').textContent = val('volunteerOccupation') || '-';
+        document.getElementById('reviewEducation').textContent = selectedText('volunteerEducation') || '-';
+        document.getElementById('reviewSkills').textContent = val('volunteerSkills') || '-';
+        document.getElementById('reviewArea').textContent = selectedText('preferredArea') || '-';
+        document.getElementById('reviewAvailability').textContent = selectedText('volunteerAvailability') || '-';
+
+        const tshirt = form.querySelector('input[name="tshirtSize"]:checked');
+        document.getElementById('reviewTshirtSize').textContent = tshirt ? tshirt.value : '-';
+    }
+
+    // Submit handler
+    form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
     if (!form.checkValidity()) {
-        showAlert('Please fill in all required fields', 'warning');
+        form.reportValidity();
         return;
     }
 
-    try {
-        const submitBtn = document.getElementById('submitVolunteerBtn');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
-        submitBtn.disabled = true;
+    await addNewVolunteer();
+});
+}
 
-        // Get current timestamp
+// Add New Volunteer to Firestore — FIXED
+async function addNewVolunteer() {
+    // ✅ সঠিক ফর্ম ID
+    const form = document.getElementById('volunteerRegistrationForm');
+
+    if (!form) {
+        showAlert('Volunteer registration form not found', 'danger');
+        return;
+    }
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    const submitBtn = document.getElementById('submitVolunteerBtn');
+    const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+
+    try {
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+            submitBtn.disabled = true;
+        }
+
         const now = new Date();
 
-        // Create volunteer data
+        // ✅ T-shirt size রেডিও থেকে পড়ুন
+        const tshirtInput = form.querySelector('input[name="tshirtSize"]:checked');
+        const tshirtSize = tshirtInput ? tshirtInput.value : '';
+
+        // ✅ Availability → আনুমানিক ঘণ্টা (NaN এড়ানোর জন্য)
+        const availability = document.getElementById('volunteerAvailability').value;
+        const availabilityHoursMap = {
+            'full_day': 9,
+            'morning': 5,
+            'afternoon': 4,
+            'flexible': 9
+        };
+        const availableHours = availabilityHoursMap[availability] || 0;
+
+        // ✅ Volunteer data — সব ফিল্ড সরাসরি ফর্ম থেকে
         const volunteerData = {
             fullName: document.getElementById('volunteerName').value.trim(),
-            age: parseInt(document.getElementById('volunteerAge').value),
+            age: parseInt(document.getElementById('volunteerAge').value, 10) || 0,
             gender: document.getElementById('volunteerGender').value,
             phone: document.getElementById('volunteerPhone').value.trim(),
             email: document.getElementById('volunteerEmail').value.trim() || '',
-            address: document.getElementById('volunteerAddress').value.trim(),
-            education: document.getElementById('volunteerEducation').value.trim() || '',
             emergencyContact: document.getElementById('volunteerEmergencyContact').value.trim() || '',
-            preferredArea: document.getElementById('volunteerArea').value,
-            experience: document.getElementById('volunteerExperience').value,
-            availableHours: parseInt(document.getElementById('volunteerHours').value),
+            address: document.getElementById('volunteerAddress').value.trim() || '',
+
+            occupation: document.getElementById('volunteerOccupation').value.trim() || '',
+            education: document.getElementById('volunteerEducation').value || '',
+            skills: document.getElementById('volunteerSkills').value.trim() || '',
+            previousExperience: document.getElementById('previousExperience').value.trim() || '',
+
+            preferredArea: document.getElementById('preferredArea').value,
+            availability: availability,
+            tshirtSize: tshirtSize,
+            additionalInfo: document.getElementById('additionalInfo').value.trim() || '',
+
             specialSkills: document.getElementById('volunteerSkills').value.trim() || '',
-            checkedIn: document.getElementById('volunteerCheckedIn').checked,
-            checkedInTime: document.getElementById('volunteerCheckedIn').checked ? now : null,
+
+            availableHours: availableHours,
+            checkedIn: false,
+            checkedInTime: null,
             assignedTask: '',
-            status: document.getElementById('volunteerCheckedIn').checked ? 'Active' : 'Registered',
+            status: 'Registered',
             hoursWorked: 0,
+
             createdAt: now,
+            registrationDate: now,
             lastActivity: now
         };
 
-        // Add to Firestore
+        // Firestore-এ যোগ করুন
         await db.collection('volunteers').add(volunteerData);
 
         showAlert('Volunteer added successfully!', 'success');
         closeModal();
 
-        // Refresh volunteers table
+        // টেবিল রিফ্রেশ
         if (typeof loadVolunteersTable === 'function') {
             loadVolunteersTable();
         }
 
-        // Update dashboard stats
+        // ড্যাশবোর্ড স্ট্যাট আপডেট
         if (typeof updateDashboardStats === 'function') {
             updateDashboardStats();
         }
@@ -2240,9 +2617,8 @@ async function addNewVolunteer() {
         console.error('Error adding volunteer:', error);
         showAlert('Error adding volunteer: ' + error.message, 'danger');
     } finally {
-        const submitBtn = document.getElementById('submitVolunteerBtn');
         if (submitBtn) {
-            submitBtn.innerHTML = 'Add Volunteer';
+            submitBtn.innerHTML = originalBtnHtml || '<i class="fas fa-check-circle"></i> Add Volunteer';
             submitBtn.disabled = false;
         }
     }
@@ -3225,9 +3601,174 @@ async function loadVolunteersTable() {
     if (!tableBody) return;
 
     try {
+        // ✅ orderBy বাদ — সব ডকুমেন্ট ফেচ, পরে client-side sort
+        const snapshot = await db.collection('volunteers').get();
+
+        // createdAt → registrationDate → 0 এই অর্ডারে sort key বের করুন
+        const volunteers = snapshot.docs.map(doc => {
+            const data = doc.data();
+            let t = 0;
+            if (data.createdAt) {
+                t = data.createdAt.toDate
+                    ? data.createdAt.toDate().getTime()
+                    : new Date(data.createdAt).getTime();
+            } else if (data.registrationDate) {
+                t = data.registrationDate.toDate
+                    ? data.registrationDate.toDate().getTime()
+                    : new Date(data.registrationDate).getTime();
+            }
+            return { id: doc.id, ...data, _sortTime: t };
+        });
+
+        volunteers.sort((a, b) => b._sortTime - a._sortTime);
+
+        tableBody.innerHTML = '';
+
+        if (volunteers.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center">No volunteers found</td>
+                </tr>`;
+            return;
+        }
+
+        volunteers.forEach(v => {
+            const statusClass = v.checkedIn ? 'status-active' : 'status-registered';
+            const checkedInTime = v.checkedInTime
+                ? formatFirestoreTimestamp(v.checkedInTime)
+                : 'Not checked in';
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${esc(v.fullName)}</td>
+                <td>${v.age ?? ''}</td>
+                <td>${v.gender ?? ''}</td>
+                <td>${formatPhoneNumber(v.phone)}</td>
+                <td>${esc(v.preferredArea || 'N/A')}</td>
+                <td>
+                    <span class="status-badge ${statusClass}">
+                        ${v.status || (v.checkedIn ? 'Active' : 'Registered')}
+                    </span>
+                </td>
+                <td>${v.assignedTask || 'Not assigned'}</td>
+                <td>${checkedInTime}</td>
+                <td>
+                    <button class="btn-action view-volunteer" data-id="${v.id}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn-action assign-task" data-id="${v.id}">
+                        <i class="fas fa-tasks"></i>
+                    </button>
+                    <button class="btn-action toggle-checkin" data-id="${v.id}" data-checked="${v.checkedIn}">
+                        <i class="fas fa-user-check"></i>
+                    </button>
+                </td>`;
+            tableBody.appendChild(row);
+        });
+
+        // Stats
+        const totalEl = document.getElementById('totalVolunteersSmall');
+        if (totalEl) totalEl.textContent = volunteers.length;
+
+        const checkedEl = document.getElementById('checkedInVolunteers');
+        if (checkedEl) checkedEl.textContent = volunteers.filter(v => v.checkedIn).length;
+
+        // ✅ বাটনগুলোর action listeners attach করুন
+        // (আগে admin.js-এ এগুলো attach-ই হচ্ছিল না — তাই বাটনে ক্লিক করলে কিছুই হতো না)
+        if (typeof viewVolunteerDetails === 'function') {
+            document.querySelectorAll('.view-volunteer').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    viewVolunteerDetails(this.getAttribute('data-id'));
+                });
+            });
+            document.querySelectorAll('.assign-task').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    assignVolunteerTask(this.getAttribute('data-id'));
+                });
+            });
+            document.querySelectorAll('.toggle-checkin').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    toggleVolunteerCheckIn(this.getAttribute('data-id'));
+                });
+            });
+        }
+
+    } catch (error) {
+        console.error('Error loading volunteers:', error);
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center error">Error loading volunteers</td>
+            </tr>`;
+    }
+}
+
+const menuToggle = document.getElementById('menuToggle');
+const navMenu = document.querySelector('.nav-menu');
+
+menuToggle.addEventListener('click', () => {
+    navMenu.classList.toggle('active');
+    menuToggle.classList.toggle('active');
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// VOLUNTEER MANAGEMENT - Full Implementation (Fixed)
+// ═══════════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────────
+// Helper: Format date/time for check-in / check-out display
+// ─────────────────────────────────────────────────────────────────
+function formatVolunteerDateTime(value) {
+    if (!value) return '-';
+    let d;
+    if (typeof value.toDate === 'function') d = value.toDate();
+    else if (value instanceof Date) d = value;
+    else d = new Date(value);
+    if (isNaN(d.getTime())) return '-';
+
+    const pad = n => String(n).padStart(2, '0');
+    let hours = d.getHours();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()} ${pad(hours)}:${pad(d.getMinutes())} ${ampm}`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Helper: Total hours worked (stored + live session if checked in)
+// ─────────────────────────────────────────────────────────────────
+function calculateVolunteerHours(volunteer) {
+    let hours = Number(volunteer.hoursWorked) || 0;
+    if (volunteer.checkedIn && volunteer.checkedInTime) {
+        let t;
+        if (typeof volunteer.checkedInTime.toDate === 'function') {
+            t = volunteer.checkedInTime.toDate();
+        } else {
+            t = new Date(volunteer.checkedInTime);
+        }
+        if (!isNaN(t.getTime())) {
+            hours += (Date.now() - t.getTime()) / (1000 * 60 * 60);
+        }
+    }
+    return Math.max(0, hours);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Initialize Volunteer Management
+// ─────────────────────────────────────────────────────────────────
+async function initVolunteerManagement() {
+    await loadVolunteersTable();
+    initVolunteerActions();
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Load Volunteers Table (shows check-in/out, hours, assigned task)
+// ─────────────────────────────────────────────────────────────────
+async function loadVolunteersTable() {
+    const tableBody = document.getElementById('volunteersTableBody');
+    if (!tableBody) return;
+
+    try {
         const snapshot = await db.collection('volunteers')
             .orderBy('createdAt', 'desc')
-            .limit(50)
             .get();
 
         tableBody.innerHTML = '';
@@ -3241,45 +3782,57 @@ async function loadVolunteersTable() {
             return;
         }
 
+        // Small stat cards (optional - only if elements exist)
+        const activeCount = snapshot.docs.filter(d => d.data().checkedIn).length;
+        const totalHours = snapshot.docs.reduce(
+            (sum, doc) => sum + calculateVolunteerHours(doc.data()), 0
+        );
+        const totalEl = document.getElementById('totalVolunteersSmall');
+        if (totalEl) totalEl.textContent = snapshot.size;
+        const activeEl = document.getElementById('activeVolunteersSmall');
+        if (activeEl) activeEl.textContent = activeCount;
+        const hoursEl = document.getElementById('totalVolunteerHours');
+        if (hoursEl) hoursEl.textContent = totalHours.toFixed(1);
+
         snapshot.forEach(doc => {
-            const volunteer = doc.data();
-            const statusClass = volunteer.checkedIn ? 'status-active' : 'status-registered';
-            const checkedInTime = volunteer.checkedInTime ?
-                formatFirestoreTimestamp(volunteer.checkedInTime) : 'Not checked in';
+            const v = doc.data();
+
+            // Status logic
+            const checkedOut = !!v.checkedOutTime && !v.checkedIn;
+            const statusText = v.checkedIn
+                ? 'Checked In'
+                : (v.checkedOutTime ? 'Checked Out' : 'Not Checked In');
+            const statusClass = v.checkedIn
+                ? 'status-active'
+                : (v.checkedOutTime ? 'status-completed' : 'status-waiting');
+
+            const hours = calculateVolunteerHours(v).toFixed(2);
+            const hoursLabel = v.checkedIn ? `${hours} (live)` : `${hours}`;
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${esc(volunteer.fullName)}</td>
-                <td>${volunteer.age}</td>
-                <td>${volunteer.gender}</td>
-                <td>${formatPhoneNumber(volunteer.phone)}</td>
-                <td>${esc(volunteer.preferredArea)}</td>
+                <td>${esc(v.fullName)}</td>
+                <td>${esc(v.phone || '-')}</td>
+                <td>${esc(v.preferredArea || '-')}</td>
+                <td>${esc(v.assignedTask || 'Not Assigned')}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>${formatVolunteerDateTime(v.checkedInTime)}</td>
+                <td>${formatVolunteerDateTime(v.checkedOutTime)}</td>
+                <td>${hoursLabel} hrs</td>
                 <td>
-                    <span class="status-badge ${statusClass}">
-                        ${volunteer.status || (volunteer.checkedIn ? 'Active' : 'Registered')}
-                    </span>
-                </td>
-                <td>${volunteer.assignedTask || 'Not assigned'}</td>
-                <td>${checkedInTime}</td>
-                <td>
-                    <button class="btn-action view-volunteer" data-id="${doc.id}">
+                    <button class="btn-action view-volunteer" data-id="${doc.id}" title="View Details">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn-action edit-volunteer" data-id="${doc.id}">
-                        <i class="fas fa-edit"></i>
+                    <button class="btn-action assign-task" data-id="${doc.id}" title="Assign Task">
+                        <i class="fas fa-tasks"></i>
                     </button>
-                    <button class="btn-action toggle-checkin" data-id="${doc.id}" data-checked="${volunteer.checkedIn}">
-                        <i class="fas fa-user-check"></i>
+                    <button class="btn-action toggle-checkin" data-id="${doc.id}" title="${v.checkedIn ? 'Check Out' : 'Check In'}">
+                        <i class="fas fa-${v.checkedIn ? 'sign-out-alt' : 'sign-in-alt'}"></i>
                     </button>
                 </td>
             `;
-
             tableBody.appendChild(row);
         });
-
-        // Update small stats cards
-        document.getElementById('totalVolunteersSmall').textContent = snapshot.size;
-        document.getElementById('checkedInVolunteers').textContent = snapshot.docs.filter(v => v.data().checkedIn).length;
 
     } catch (error) {
         console.error('Error loading volunteers:', error);
@@ -3290,3 +3843,323 @@ async function loadVolunteersTable() {
         `;
     }
 }
+
+// ─────────────────────────────────────────────────────────────────
+// Initialize Volunteer Actions (event delegation — bug-free)
+// ─────────────────────────────────────────────────────────────────
+function initVolunteerActions() {
+    // Remove old handler if it exists (avoid duplicate listeners)
+    if (window.__volunteerActionsHandler) {
+        document.removeEventListener('click', window.__volunteerActionsHandler);
+    }
+
+    window.__volunteerActionsHandler = function (e) {
+        const viewBtn = e.target.closest('.view-volunteer');
+        if (viewBtn) {
+            viewVolunteerDetails(viewBtn.getAttribute('data-id'));
+            return;
+        }
+
+        const assignBtn = e.target.closest('.assign-task');
+        if (assignBtn) {
+            assignTaskToVolunteer(assignBtn.getAttribute('data-id'));
+            return;
+        }
+
+        const checkinBtn = e.target.closest('.toggle-checkin');
+        if (checkinBtn) {
+            toggleVolunteerCheckIn(checkinBtn.getAttribute('data-id'));
+            return;
+        }
+    };
+    document.addEventListener('click', window.__volunteerActionsHandler);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Assign Task to Volunteer (FIXED — works properly now)
+// ─────────────────────────────────────────────────────────────────
+async function assignTaskToVolunteer(volunteerId) {
+    try {
+        const doc = await db.collection('volunteers').doc(volunteerId).get();
+        if (!doc.exists) {
+            showAlert('Volunteer not found', 'danger');
+            return;
+        }
+
+        const v = doc.data();
+        const predefinedTasks = [
+            'Registration Desk',
+            'Crowd Control & Guidance',
+            'Patient Support & Assistance',
+            'Medicine Distribution',
+            'Food & Water Distribution',
+            'Cleanup & Maintenance',
+            'Patient Transportation',
+            'Other'
+        ];
+
+        const optionsHtml = predefinedTasks
+            .map(t => `<option value="${esc(t)}">${esc(t)}</option>`)
+            .join('');
+
+        const modalContent = `
+            <div class="modal-header">
+                <h3>Assign Task</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Volunteer:</label>
+                    <p style="margin:0;"><strong>${esc(v.fullName)}</strong> ${v.phone ? '(' + esc(v.phone) + ')' : ''}</p>
+                </div>
+                <div class="form-group">
+                    <label for="taskSelect" class="form-label">Select Task:</label>
+                    <select id="taskSelect" class="form-control">
+                        <option value="">-- Select a task --</option>
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="customTaskInput" class="form-label">Custom Task / Notes:</label>
+                    <textarea id="customTaskInput" class="form-control" rows="2"
+                        placeholder="Any extra details or custom task description...">${esc(v.taskNotes || '')}</textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="saveTaskBtn">Assign Task</button>
+            </div>
+        `;
+
+        showModal(modalContent);
+        document.querySelector('.close-modal').addEventListener('click', closeModal);
+
+        // Pre-select current task
+        const taskSelect = document.getElementById('taskSelect');
+        if (v.assignedTask) {
+            if (predefinedTasks.includes(v.assignedTask)) {
+                taskSelect.value = v.assignedTask;
+            } else {
+                taskSelect.value = 'Other';
+                document.getElementById('customTaskInput').value = v.assignedTask;
+            }
+        }
+
+        document.getElementById('saveTaskBtn').addEventListener('click', async () => {
+            const selectedTask = taskSelect.value;
+            const notes = document.getElementById('customTaskInput').value.trim();
+
+            if (!selectedTask) {
+                showAlert('Please select a task', 'warning');
+                return;
+            }
+
+            const finalTask = (selectedTask === 'Other')
+                ? (notes || 'Other Task')
+                : selectedTask;
+
+            const btn = document.getElementById('saveTaskBtn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            try {
+                await db.collection('volunteers').doc(volunteerId).update({
+                    assignedTask: finalTask,
+                    taskNotes: notes,
+                    taskAssignedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastActivity: new Date()
+                });
+                showAlert('Task assigned successfully!', 'success');
+                closeModal();
+                loadVolunteersTable();
+            } catch (err) {
+                console.error('Error assigning task:', err);
+                showAlert('Error assigning task: ' + err.message, 'danger');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        });
+
+    } catch (err) {
+        console.error('Error opening task modal:', err);
+        showAlert('Error loading volunteer data', 'danger');
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Toggle Check-In / Check-Out (calculates hours on checkout)
+// ─────────────────────────────────────────────────────────────────
+async function toggleVolunteerCheckIn(volunteerId) {
+    try {
+        const docRef = db.collection('volunteers').doc(volunteerId);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            showAlert('Volunteer not found', 'danger');
+            return;
+        }
+
+        const v = doc.data();
+        const now = new Date();
+
+        if (!v.checkedIn) {
+            // ── CHECK IN ──
+            await docRef.update({
+                checkedIn: true,
+                checkedInTime: now,
+                checkedOutTime: null,       // reset previous session's checkout
+                status: 'Checked In',
+                lastActivity: now
+            });
+            showAlert('Checked in successfully!', 'success');
+
+        } else {
+            // ── CHECK OUT ──
+            let checkInDate;
+            if (v.checkedInTime && typeof v.checkedInTime.toDate === 'function') {
+                checkInDate = v.checkedInTime.toDate();
+            } else if (v.checkedInTime) {
+                checkInDate = new Date(v.checkedInTime);
+            } else {
+                checkInDate = now;
+            }
+            if (isNaN(checkInDate.getTime())) checkInDate = now;
+
+            const sessionHours = Math.max(0, (now - checkInDate) / (1000 * 60 * 60));
+            const newTotalHours = (Number(v.hoursWorked) || 0) + sessionHours;
+
+            await docRef.update({
+                checkedIn: false,
+                checkedOutTime: now,
+                hoursWorked: Number(newTotalHours.toFixed(2)),
+                status: 'Checked Out',
+                lastActivity: now
+            });
+
+            showAlert(
+                `Checked out! Session: ${sessionHours.toFixed(2)} hrs | Total: ${newTotalHours.toFixed(2)} hrs`,
+                'success'
+            );
+        }
+
+        loadVolunteersTable();
+
+    } catch (err) {
+        console.error('Error toggling check-in:', err);
+        showAlert('Error updating check-in status: ' + err.message, 'danger');
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// View Volunteer Details (shows ALL info + attendance + hours)
+// ─────────────────────────────────────────────────────────────────
+async function viewVolunteerDetails(volunteerId) {
+    try {
+        const doc = await db.collection('volunteers').doc(volunteerId).get();
+        if (!doc.exists) {
+            showAlert('Volunteer not found', 'danger');
+            return;
+        }
+
+        const v = doc.data();
+        const hours = calculateVolunteerHours(v).toFixed(2);
+        const statusText = v.checkedIn
+            ? 'Checked In'
+            : (v.checkedOutTime ? 'Checked Out' : 'Not Checked In');
+        const statusClass = v.checkedIn
+            ? 'status-active'
+            : (v.checkedOutTime ? 'status-completed' : 'status-waiting');
+
+        const modalContent = `
+            <div class="modal-header">
+                <h3>Volunteer Details</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="patient-details-grid">
+
+                    <div class="detail-group">
+                        <h4>Personal Information</h4>
+                        <p><strong>Full Name:</strong> ${esc(v.fullName)}</p>
+                        <p><strong>Age:</strong> ${v.age || '-'}</p>
+                        <p><strong>Gender:</strong> ${esc(v.gender || '-')}</p>
+                        <p><strong>Phone:</strong> ${esc(v.phone || '-')}</p>
+                        <p><strong>Email:</strong> ${esc(v.email || '-')}</p>
+                        <p><strong>Emergency Contact:</strong> ${esc(v.emergencyContact || '-')}</p>
+                        <p><strong>Address:</strong> ${esc(v.address || '-')}</p>
+                    </div>
+
+                    <div class="detail-group">
+                        <h4>Background Information</h4>
+                        <p><strong>Occupation:</strong> ${esc(v.occupation || '-')}</p>
+                        <p><strong>Education:</strong> ${esc(v.education || '-')}</p>
+                        <p><strong>Skills:</strong> ${esc(v.skills || v.specialSkills || '-')}</p>
+                        <p><strong>Previous Experience:</strong> ${esc(v.previousExperience || '-')}</p>
+                    </div>
+
+                    <div class="detail-group">
+                        <h4>Volunteer Preferences</h4>
+                        <p><strong>Preferred Area:</strong> ${esc(v.preferredArea || '-')}</p>
+                        <p><strong>Availability:</strong> ${esc(v.availability || '-')}</p>
+                        <p><strong>T-Shirt Size:</strong> ${esc(v.tshirtSize || '-')}</p>
+                        <p><strong>Additional Info:</strong> ${esc(v.additionalInfo || '-')}</p>
+                    </div>
+
+                    <div class="detail-group">
+                        <h4>Attendance &amp; Task</h4>
+                        <p><strong>Current Status:</strong>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </p>
+                        <p><strong>Assigned Task:</strong> ${esc(v.assignedTask || 'Not Assigned')}</p>
+                        ${v.taskNotes ? `<p><strong>Task Notes:</strong> ${esc(v.taskNotes)}</p>` : ''}
+                        <p><strong>Checked In:</strong> ${formatVolunteerDateTime(v.checkedInTime)}</p>
+                        <p><strong>Checked Out:</strong> ${formatVolunteerDateTime(v.checkedOutTime)}</p>
+                        <p><strong>Total Hours Worked:</strong> <strong style="color:#2a9d8f;">${hours} hrs</strong>${v.checkedIn ? ' <em>(session active)</em>' : ''}</p>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Close</button>
+                <button class="btn btn-warning" id="assignTaskFromDetails">
+                    <i class="fas fa-tasks"></i> ${v.assignedTask ? 'Change Task' : 'Assign Task'}
+                </button>
+                <button class="btn btn-${v.checkedIn ? 'danger' : 'success'}" id="toggleCheckinFromDetails">
+                    <i class="fas fa-${v.checkedIn ? 'sign-out-alt' : 'sign-in-alt'}"></i>
+                    ${v.checkedIn ? 'Check Out' : 'Check In'}
+                </button>
+            </div>
+        `;
+
+        showModal(modalContent);
+        document.querySelector('.close-modal').addEventListener('click', closeModal);
+
+        document.getElementById('assignTaskFromDetails').addEventListener('click', () => {
+            closeModal();
+            assignTaskToVolunteer(volunteerId);
+        });
+
+        document.getElementById('toggleCheckinFromDetails').addEventListener('click', async () => {
+            await toggleVolunteerCheckIn(volunteerId);
+            closeModal();
+            viewVolunteerDetails(volunteerId); // reopen with fresh data
+        });
+
+    } catch (err) {
+        console.error('Error viewing volunteer details:', err);
+        showAlert('Error loading volunteer details', 'danger');
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Expose volunteer management functions globally (optional)
+// ─────────────────────────────────────────────────────────────────
+window.volunteerUtils = {
+    initVolunteerManagement,
+    loadVolunteersTable,
+    initVolunteerActions,
+    viewVolunteerDetails,
+    assignTaskToVolunteer,
+    toggleVolunteerCheckIn,
+    calculateVolunteerHours
+};
