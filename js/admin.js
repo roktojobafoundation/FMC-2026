@@ -1753,7 +1753,7 @@ function printPatientPrescription(patient) {
                 </div>
 
                 <div class="rx-footer">
-                    <div class="note">Powered by <strong>FT Innovation</strong> | Our Medical Partnar <strong>Aurora Specialized Hospital Ltd.</strong></div>
+                    <div class="note">Powered by <strong>FT Innovation</strong> | Our Medical Partner <strong>Aurora Specialized Hospital Ltd.</strong></div>
                     <div class="printed">Roktojoba Foundation - Free Medical Camp | Software Designed & Developed by <strong>MD. Tasrik Hossain</strong></div>
                 </div>
             </div>
